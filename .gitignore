@@ -1,0 +1,6 @@
+*.pyc
+data/dataset-*
+data/jsonl/
+.ipynb_checkpoints
+.vscode
+.venv
