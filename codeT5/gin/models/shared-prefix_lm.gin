@@ -3,6 +3,7 @@ import mesh_tensorflow.transformer.learning_rate_schedules
 import mesh_tensorflow.transformer.transformer_layers
 import t5.models.mesh_transformer
 import t5.data.sentencepiece_vocabulary
+import codeT5.tasks
 
 # Macros:
 # ==============================================================================
