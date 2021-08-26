@@ -123,12 +123,12 @@ python ./print_dataset.py
 
 
 ```
-export PROJECT=data-analytics-experiments
-export ZONE=europe-west4-a
+export PROJECT=<project-id>
+export ZONE=<zone>
 export BUCKET=gs://t5-codex/
 export TPU_NAME=t5-tpu
 export TPU_SIZE=v2-8
-export DATA_DIR="${BUCKET}/your_data_dir"
+export DATA_DIR="${BUCKET}/data"
 export MODEL_DIR="${BUCKET}/models"
 ```
 
@@ -147,7 +147,7 @@ t5_mesh_transformer  \
   --model_dir="${MODEL_DIR}" \
   --t5_tfds_data_dir="${DATA_DIR}" \
   --module_import=codeT5
-  --gin_file="models/dataset.gin" \
+  --gin_file="models/shared-prefix_lm.gin" \
   --gin_param="utils.tpu_mesh_shape.model_parallelism = 1" \
   --gin_param="utils.tpu_mesh_shape.tpu_topology = '${TPU_SIZE}'" \
   --gin_param="MIXTURE_NAME = 'py5k_prefix_lm'"
