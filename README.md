@@ -4,8 +4,7 @@
 
 ### Fullline
 
-Flavors of the 2019 dataset used by Fulline Completino project 
-https://jetbrains.team/p/ccrm/repositories/fl-dataset/files/docs/README.md
+Flavors of the 2019 dataset used by [Fulline Completion](https://jetbrains.team/p/ccrm/repositories/fl-dataset/files/docs/README.md) project.
 
 #### Python: Top 5k repos >50 stars
 ```
@@ -68,8 +67,8 @@ pv data/jsonl/py5k-50.jsonl \
   > data/jsonl/py5k-50-uniq.jsonl
 ```
 
-2.  Train SentencePiece vocabulary on full content
-Follwo https://github.com/google/sentencepiece#build-and-install-sentencepiece-command-line-tools-from-c-source
+2. Train SentencePiece vocabulary on full content.
+Follow https://github.com/google/sentencepiece#build-and-install-sentencepiece-command-line-tools-from-c-source
 
 ```
 pv data/jsonl/py5k-50-uniq.jsonl \

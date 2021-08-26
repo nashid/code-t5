@@ -39,7 +39,7 @@ DEFAULT_OUTPUT_FEATURES = {
     seqio.Feature(vocabulary=vocab, add_eos=True)
 }
 
-DATA_DIR = "gs://t5-codex/" # "data"
+DATA_DIR = "gs://t5-codex/data"
 
 py_txt_path = {
     "train": os.path.join(DATA_DIR, "py5k-50.train.txt"),
