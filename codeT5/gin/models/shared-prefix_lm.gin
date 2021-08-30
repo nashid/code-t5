@@ -3,7 +3,6 @@ import mesh_tensorflow.transformer.learning_rate_schedules
 import mesh_tensorflow.transformer.transformer_layers
 import t5.models.mesh_transformer
 import t5.data.sentencepiece_vocabulary
-import codeT5.tasks
 
 # Macros:
 # ==============================================================================
@@ -191,7 +190,7 @@ encoder/SelfAttention.shared_kv = False
 # ==============================================================================
 SentencePieceVocabulary.extra_ids = 0
 SentencePieceVocabulary.sentencepiece_model_file = \
-    @codeT5.tasks.get_sentencepiece_model_path()
+    @t5.models.mesh_transformer.get_sentencepiece_model_path()
 
 # Parameters for serialize_num_microbatches:
 # ==============================================================================
