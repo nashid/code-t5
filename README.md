@@ -135,7 +135,7 @@ export TPU_NAME=t5-tpu
 export TPU_SIZE=v2-8
 export DATA_DIR="${BUCKET}/data"
 export MODEL_DIR="${BUCKET}/models"
-export TASK_NAME='py-50stars-top5k-2019
+export TASK_NAME='py_50stars_top5k_2019'
 ```
 
 Create TPU from Cloud VM

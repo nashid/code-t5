@@ -60,7 +60,7 @@ def py5k_dataset_fn(split, shuffle_files=False):
 
 # Prefix language modeling pretraining task used in Raffel et al., 2019.
 TaskRegistry.add(
-    "py-50stars-top5k-2019",
+    "py_50stars_top5k_2019",
     source=seqio.TextLineDataSource(
         split_to_filepattern=py_txt_path,
         num_input_examples={"train": 170000, "validation":40815},
