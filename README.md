@@ -177,8 +177,9 @@ Cached .tfrecords TextLineSource:
 
 To cache it
 ```
+!pip install apache-beam[gcp] python-snappy
 !cd code-t5 && python -m seqio.scripts.cache_tasks_main \
- --module_import='codeT5' \
+ --module_import="codeT5.tasks" \
  --tasks="${TASK_NAME}" \
  --output_cache_dir='gs://t5-codex/cache' \
  --alsologtostderr

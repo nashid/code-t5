@@ -42,7 +42,7 @@ DEFAULT_OUTPUT_FEATURES = {
 DATA_DIR = "gs://t5-codex/data"
 
 py_txt_path = {
-    "train": os.path.join(DATA_DIR, "py-50stars-top5k-2019", "py5k-50.train-*.txt"),
+    "train": os.path.join(DATA_DIR, "py-50stars-top5k-2019", "py5k-50.train.txt-*"),
     "validation": os.path.join(DATA_DIR, "py-50stars-top5k-2019", "py5k-50.test.txt")
 }
 
