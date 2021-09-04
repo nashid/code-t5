@@ -57,6 +57,11 @@ def py5k_dataset_fn(split, shuffle_files=False):
                 num_parallel_calls=tf.data.experimental.AUTOTUNE)
     return ds
 
+def _to_inputs_and_targets(ex):
+    return {
+        "inputs": "",
+        "targets": ex,
+    }
 
 # Prefix language modeling pretraining task used in Raffel et al., 2019.
 TaskRegistry.add(
@@ -66,11 +71,7 @@ TaskRegistry.add(
         num_input_examples={"train": 170000, "validation":40815},
     ),
     preprocessors=[
-        functools.partial(
-            preprocessors.rekey, key_map={
-                "inputs": None,
-                "targets": "text"
-            }),
+        _to_inputs_and_targets,
         seqio.preprocessors.tokenize,
         seqio.CacheDatasetPlaceholder(),
         preprocessors.prefix_lm,
