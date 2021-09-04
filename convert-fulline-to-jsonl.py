@@ -128,6 +128,8 @@ def process_single_repo(lang_repo_path: str, data_dir: str) -> DefaultDict[str, 
                 err_stats[str(se)] += 1
             except KeyError as ke:
                 err_stats[f"path_not_found_{ke}"] += 1
+            except UnicodeDecodeError as ue:
+                err_stats["files_skipped: unicode"] += 1
             except Exception as e:
                 err_stats[e] += 1
     err_stats["repos_processed"] = 1
