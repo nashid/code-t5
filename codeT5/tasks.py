@@ -41,18 +41,23 @@ DEFAULT_OUTPUT_FEATURES = {
 
 DATA_DIR = "gs://t5-codex/data"
 
-py_txt_path = {
+py_50_top5k_txt_path = {
     "train": os.path.join(DATA_DIR, "py-50stars-top5k-2019", "py5k-50.train.txt-*"),
     "validation": os.path.join(DATA_DIR, "py-50stars-top5k-2019", "py5k-50.test.txt")
 }
 
+py_50_txt_path = {
+    "train": os.path.join(DATA_DIR, "py-50stars-2019", "py_50stars_2019.train.txt-*"),
+    "validation": os.path.join(DATA_DIR, "py-50stars-2019", "py_50stars_2019.test.txt-*")
+}
+
 
 def py5k_dataset_fn(split, shuffle_files=False):
-    # We only have one file for each split.
+    # In case when we only have one file for each split.
     del shuffle_files
 
     # Load lines from the text file as examples.
-    ds = tf.data.TextLineDataset(py_txt_path[split])
+    ds = tf.data.TextLineDataset(py_50_top5k_txt_path[split])
     ds = ds.map(lambda ex: {"text": ex},
                 num_parallel_calls=tf.data.experimental.AUTOTUNE)
     return ds
@@ -71,8 +76,24 @@ def fl_preprocessor(ds):
 TaskRegistry.add(
     "py_50stars_top5k_2019",
     source=seqio.TextLineDataSource(
-        split_to_filepattern=py_txt_path,
+        split_to_filepattern=py_50_top5k_txt_path,
         num_input_examples={"train": 170000, "validation":40815},
+    ),
+    preprocessors=[
+        fl_preprocessor,
+        seqio.preprocessors.tokenize,
+        seqio.CacheDatasetPlaceholder(),
+        preprocessors.prefix_lm,
+        seqio.preprocessors.append_eos_after_trim,
+    ],
+    metric_fns=[t5.evaluation.metrics.accuracy],
+    output_features=DEFAULT_OUTPUT_FEATURES)
+
+TaskRegistry.add(
+    "py_50stars_2019",
+    source=seqio.TextLineDataSource(
+        split_to_filepattern=py_50_txt_path,
+        num_input_examples={"train": 700000, "validation":352596},
     ),
     preprocessors=[
         fl_preprocessor,

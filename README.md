@@ -33,7 +33,20 @@ Pre-processed
  * Files 1,745,450
  * Lines 347,563,305
 
- After filtering: 1,052,596 uniq files / 17Gb
+ After filtering: 1,052,596 uniq files / 7.3Gb
+
+ <details>
+
+ 38506 results
+ 'files_processed': 1466495,
+ 'files_skipped: >1mb files': 278,
+ 'files_skipped: empty': 71561,
+ 'files_skipped: generated': 5557,
+ 'files_skipped: lines long': 7091,
+ 'files_skipped: unicode': 4271,
+ 'repos_processed': 37847,
+ 'repos_skipped_unk_branchs': 659
+ </details>
 
 ```
 aria2c -x 16 -j 16 https://5k-dataset.s3.amazonaws.com/v3/dataset-open-50-more-1.tar.gz
