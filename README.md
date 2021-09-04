@@ -15,7 +15,7 @@ wget 'https://5k-dataset.s3.amazonaws.com/v3/dataset-normalized-5000-with-import
  * Projects 3047
  * Files 270,058
  * Lines 46,431,253
- * (Sub-)Tokens 631,547,168
+ * (Sub-)Tokens 392,272,175
 
 After filtering: 210k uniq files / 1.6Gb
  * size < 1Mb
@@ -29,9 +29,11 @@ Pre-processed
 #### Python: all repos >50 stars
  * Total 143Gb compressed, 840Gb uncompressed
  * Python 17Gb
- * Projects 35,954
+ * Projects 37,847
  * Files 1,745,450
  * Lines 347,563,305
+
+ After filtering: 1,052,596 uniq files / 17Gb
 
 ```
 aria2c -x 16 -j 16 https://5k-dataset.s3.amazonaws.com/v3/dataset-open-50-more-1.tar.gz
@@ -130,9 +132,9 @@ python ./print_dataset.py
 ```
 export PROJECT=<project-id>
 export ZONE=<zone>
-export BUCKET=gs://t5-codex/
 export TPU_NAME=t5-tpu
 export TPU_SIZE=v2-8
+export BUCKET=gs://t5-codex/
 export DATA_DIR="${BUCKET}/data"
 export MODEL_DIR="${BUCKET}/models"
 export TASK_NAME='py_50stars_top5k_2019'
@@ -159,37 +161,61 @@ python -m t5.models.mesh_transformer_main \
   --gin_param="utils.tpu_mesh_shape.tpu_topology = '${TPU_SIZE}'" \
   --gin_param="run.keep_checkpoint_max = 8" \
   --gin_param="MIXTURE_NAME = '${TASK_NAME}'" \
-  --gin_param="run.train_steps = 10000"
+  --gin_param="run.train_steps = 10000" \
+  --gin_param="mesh_train_dataset_fn.use_cached = True" \
+  --additional_task_cache_dirs='${BUCKET}/cache'
 ```
 
 ```
 
-Un-cached TextLineDataset:
- * TPU v2-8 3h -> 9k steps
+Un-cached .txt \w FunctionDataSource:
+ * TPU v2-8, model_parallelism = 2
+   3h -> 9k steps
    global_step/sec: 0.89
    examples/sec: 110
 
-Cached .tfrecords TextLineSource:
- * TPU v2-8 3h -> ?k steps
-   global_step/sec: ?
-   examples/sec: ?
+ * TPU v2-8, model_parallelism = 1
+   global_step/sec: 0.97
+   examples/sec: 124
+   FLOPS Utilization
+    * Utilization of TPU Matrix Units: 61.8%
+    * Program's Optimal FLOPS: 56.6%
+   Memory Bandwidth Utilization: 40%
 
+Cached .tfrecords \w TextLineDataSource:
+ * TPU v2-8, model_parallelism = 2
+   global_step/sec: 0.87
+   examples/sec: 111
+   FLOPS Utilization
+     * Utilization of TPU Matrix Units: 56.2%
+     * Program's Optimal FLOPS: 51.5%
+   Memory Bandwidth Utilization: 43.5%
+
+ * TPU v2-8, model_parallelism = 1
+   global_step/sec: 0.97
+   examples/sec: 124
+   FLOPS Utilization
+     * Utilization of TPU Matrix Units: 61.9%
+     * Program's Optimal FLOPS: 56.7%
+   Memory Bandwidth Utilization: 40.6%
 
 To cache it
 ```
-!pip install apache-beam[gcp] python-snappy
-!cd code-t5 && python -m seqio.scripts.cache_tasks_main \
+gcloud auth application-default login
+pip install apache-beam[gcp] python-snappy
+python -m seqio.scripts.cache_tasks_main \
  --module_import="codeT5.tasks" \
  --tasks="${TASK_NAME}" \
- --output_cache_dir='gs://t5-codex/cache' \
- --alsologtostderr
+ --output_cache_dir="${BUCKET}/cache" \
+ --alsologtostderr \
+ --pipeline_options=["--runner=DirectRunner","--direct_num_workers 10"]
 ```
- 
+
 
 Eval on latest checkpoint
 (27 Min initial padding on un-cached dataset :/)
 ```
-!cd code-t5/ && python -m t5.models.mesh_transformer_main  \
+python -m t5.models.mesh_transformer_main  \
   --tpu="$TPU_ADDRESS" \
   --model_dir="$MODEL_DIR" \
   --t5_tfds_data_dir="$DATA_DIR" \
