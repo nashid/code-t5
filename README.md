@@ -105,6 +105,12 @@ Split by-file may be generated the same way, just shuffle lines of JSONL before
 pv py5k-50-uniq.jsonl | perl -MList::Util=shuffle -e 'print shuffle <>;'
 ```
 
+Create 5 shards
+```
+split -da 4 -l $((`wc -l < data/py5k-50.train.txt`/5)) data/py5k-50.train.txt data/py5k-50.train.txt- --additional-suffix="-of-0005"
+```
+
+Change `DATA_DIR` in `tasks.py`.
 
 
 ## Train the model

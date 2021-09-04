@@ -42,8 +42,8 @@ DEFAULT_OUTPUT_FEATURES = {
 DATA_DIR = "gs://t5-codex/data"
 
 py_txt_path = {
-    "train": os.path.join(DATA_DIR, "py5k-50.train.txt"),
-    "validation": os.path.join(DATA_DIR, "py5k-50.test.txt")
+    "train": os.path.join(DATA_DIR, "py-50stars-top5k-2019", "py5k-50.train-*.txt"),
+    "validation": os.path.join(DATA_DIR, "py-50stars-top5k-2019", "py5k-50.test.txt")
 }
 
 
@@ -61,10 +61,9 @@ def py5k_dataset_fn(split, shuffle_files=False):
 # Prefix language modeling pretraining task used in Raffel et al., 2019.
 TaskRegistry.add(
     "py-50stars-top5k-2019",
-    source=seqio.FunctionDataSource( # use TextLineSource that can be cached
-        dataset_fn=py5k_dataset_fn,
-        splits=["train", "validation"],
-        #num_input_examples=num_py_examples
+    source=seqio.TextLineDataSource(
+        split_to_filepattern=py_txt_path,
+        num_input_examples={"train": 170000, "validation":40815},
     ),
     preprocessors=[
         functools.partial(
