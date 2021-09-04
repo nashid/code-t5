@@ -60,8 +60,8 @@ def py5k_dataset_fn(split, shuffle_files=False):
 
 # Prefix language modeling pretraining task used in Raffel et al., 2019.
 TaskRegistry.add(
-    "py5k_prefix_lm",
-    source=seqio.FunctionDataSource(
+    "py-50stars-top5k-2019",
+    source=seqio.FunctionDataSource( # use TextLineSource that can be cached
         dataset_fn=py5k_dataset_fn,
         splits=["train", "validation"],
         #num_input_examples=num_py_examples

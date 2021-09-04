@@ -2,9 +2,9 @@
 
 ## Datasets
 
-### Fullline
+### FL-Dataset
 
-Flavors of the 2019 dataset used by [Fulline Completion](https://jetbrains.team/p/ccrm/repositories/fl-dataset/files/docs/README.md) project.
+Sevral flavors of the 2019 [fl-dataset](https://jetbrains.team/p/ccrm/repositories/fl-dataset/files/docs/README.md).
 
 #### Python: Top 5k repos >50 stars
 ```
@@ -15,7 +15,7 @@ wget 'https://5k-dataset.s3.amazonaws.com/v3/dataset-normalized-5000-with-import
  * Projects 3047
  * Files 270,058
  * Lines 46,431,253
- * (Sub-)Tokens 369,241,313
+ * (Sub-)Tokens 631,547,168
 
 After filtering: 210k uniq files / 1.6Gb
  * size < 1Mb
@@ -97,7 +97,7 @@ By default, files are order by project, so we are "leaking" at most one project.
 wc -l data/py5k-50-uniq.txt
  210815
 head -n 170000 data/py5k-50-uniq.txt > data/py5k-50.train.txt
-tail -n +40815 data/py5k-50-uniq.txt > data/py5k-50.test.txt
+tail -n 40815 data/py5k-50-uniq.txt > data/py5k-50.test.txt
 ```
 
 Split by-file may be generated the same way, just shuffle lines of JSONL before
@@ -129,6 +129,7 @@ export TPU_NAME=t5-tpu
 export TPU_SIZE=v2-8
 export DATA_DIR="${BUCKET}/data"
 export MODEL_DIR="${BUCKET}/models"
+export TASK_NAME='py-50stars-top5k-2019
 ```
 
 Create TPU from Cloud VM
@@ -139,15 +140,62 @@ ctpu up --name=$TPU_NAME --project=$PROJECT --zone=$ZONE --tpu-size=$TPU_SIZE \
 
 Train
 ```
-t5_mesh_transformer  \
+python -m t5.models.mesh_transformer_main \
   --tpu="${TPU_NAME}" \
   --gcp_project="${PROJECT}" \
   --tpu_zone="${ZONE}" \
   --model_dir="${MODEL_DIR}" \
   --t5_tfds_data_dir="${DATA_DIR}" \
-  --module_import=codeT5
+  --module_import="codeT5.tasks" \
+  --gin_location_prefix="codeT5/gin/" \
   --gin_file="models/shared-prefix_lm.gin" \
-  --gin_param="utils.tpu_mesh_shape.model_parallelism = 1" \
+  --gin_param="utils.tpu_mesh_shape.model_parallelism = 2" \
   --gin_param="utils.tpu_mesh_shape.tpu_topology = '${TPU_SIZE}'" \
-  --gin_param="MIXTURE_NAME = 'py5k_prefix_lm'"
+  --gin_param="run.keep_checkpoint_max = 8" \
+  --gin_param="MIXTURE_NAME = '${TASK_NAME}'" \
+  --gin_param="run.train_steps = 10000"
+```
+
+```
+
+Un-cached TextLineDataset:
+ * TPU v2-8 3h -> 9k steps
+   global_step/sec: 0.89
+   examples/sec: 110
+
+Cached .tfrecords TextLineSource:
+ * TPU v2-8 3h -> ?k steps
+   global_step/sec: ?
+   examples/sec: ?
+
+
+To cache it
+```
+!cd code-t5 && python -m seqio.scripts.cache_tasks_main \
+ --module_import='codeT5' \
+ --tasks="${TASK_NAME}" \
+ --output_cache_dir='gs://t5-codex/cache' \
+ --alsologtostderr
+```
+ 
+
+Eval on latest checkpoint
+(27 Min initial padding on un-cached dataset :/)
+```
+!cd code-t5/ && python -m t5.models.mesh_transformer_main  \
+  --tpu="$TPU_ADDRESS" \
+  --model_dir="$MODEL_DIR" \
+  --t5_tfds_data_dir="$DATA_DIR" \
+  --module_import="codeT5.tasks" \
+  --gin_location_prefix="codeT5/gin/" \
+  --gin_file="models/shared-prefix_lm.gin" \
+  --gin_file="eval.gin" \
+  --gin_file="beam_search.gin" \
+  --gin_param="utils.tpu_mesh_shape.tpu_topology = '$TPU_TOPOLOGY'" \
+  --gin_param="split = 'validation'" \
+  --gin_param="eval_checkpoint_step = -1" \
+  --gin_param="MIXTURE_NAME = '${TASK_NAME}'"
+
+  --limit number of steps?
+  --use cache?
 ```
