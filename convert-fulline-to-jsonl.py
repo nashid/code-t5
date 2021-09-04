@@ -49,18 +49,26 @@ class Skip(Exception):
         return f"files_skipped: {super().__str__()}"
     pass
 
-def process_single_repo(repo_path: str, data_dir: str) -> DefaultDict[str, int]:
+def process_single_repo(lang_repo_path: str, data_dir: str) -> DefaultDict[str, int]:
     """Processes a single repository
         TODO: parametarize by language
         Returns: a dict with errors count by cause
     """
-    branch = "master"
-    org_path, repo = os.path.split(repo_path.rstrip(os.path.sep))
+    err_stats = defaultdict(int)
+
+    branches = list(os.scandir(lang_repo_path))
+    if len(branches) != 1:
+        err_stats['repos_skipped_unk_branchs'] = 1
+        return err_stats
+    branch = branches[0].name
+
+    org_path, repo = os.path.split(lang_repo_path.rstrip(os.path.sep))
     _, org = os.path.split(org_path)
 
+
     # read metadata from 'org/repo/branch/paths.json'
-    paths = os.path.join(data_dir, "v3", "repositories", "repositories", org,
-                         repo, branch, "paths.json")
+    paths = os.path.join(data_dir, "v3", "repositories", # "repositories", # top5k dataset has extra dir
+                         org, repo, branch, "paths.json")
 
     with open(paths, "rt", encoding="utf-8") as m:
         metadata = json.load(m)
@@ -110,9 +118,8 @@ def process_single_repo(repo_path: str, data_dir: str) -> DefaultDict[str, int]:
     jsonl = f"{data_dir}/{org}_{repo}.jsonl"
     #print(f"\twriting to '{jsonl}'")
     processed = 0
-    err_stats = defaultdict(int)
     with open(jsonl, 'w', encoding='utf-8') as f:
-        repo_py_files = pathlib.Path(f"{repo_path}/{branch}/").glob("*")
+        repo_py_files = pathlib.Path(f"{lang_repo_path}/{branch}/").glob("*")
         for py_filepath in repo_py_files:
             try:
                 process_file(f"{org}/{repo}", metadata, py_filepath, f)
