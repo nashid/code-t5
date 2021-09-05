@@ -1,5 +1,19 @@
 # Train T5 language model
 
+  * [Datasets](#datasets)
+    * [FL-Dataset](#fl-dataset)
+        * [Python: Top 5k repos &gt;50 stars](#python-top-5k-repos-50-stars)
+        * [Python: all repos &gt;50 stars](#python-all-repos-50-stars)
+        * [Python: all repos from 10 to 50 stars](#python-all-repos-from-10-to-50-stars)
+        * [Java](#java)
+        * [Preprocessing](#preprocessing)
+  * [Train the model](#train-the-model)
+  * [Cache the dataset](#cache-the-dataset)
+  * [Evaluate](#evaluate)
+  * [Export the model](#export-the-model)
+  * [Serve the predictions](#serve-the-predictions)
+  * [TF Serving](#tf-serving)
+
 ## Datasets
 
 ### FL-Dataset
@@ -15,7 +29,7 @@ wget 'https://5k-dataset.s3.amazonaws.com/v3/dataset-normalized-5000-with-import
  * Projects 3047
  * Files 270,058
  * Lines 46,431,253
- * (Sub-)Tokens 392,272,175
+ * (sub-)Tokens 392,272,175
 
 After filtering: 210k uniq files / 1.6Gb
  * size < 1Mb
@@ -28,10 +42,11 @@ Pre-processed
 
 #### Python: all repos >50 stars
  * Total 143Gb compressed, 840Gb uncompressed
- * Python 17Gb
+ * Python 17Gb (.py)
  * Projects 37,847
  * Files 1,745,450
  * Lines 347,563,305
+ * (sub-)Tokens 2,120,390,677
 
  After filtering: 1,052,596 uniq files / 7.3Gb
 
@@ -52,8 +67,18 @@ Pre-processed
 aria2c -x 16 -j 16 https://5k-dataset.s3.amazonaws.com/v3/dataset-open-50-more-1.tar.gz
 ```
 
-#### Python: all repos >10 stars
-1Tb total uncompressed
+#### Python: all repos from 10 to 50 stars
+ * Total 200Gb compressed, 1.1Tb uncompressed
+ * Python 29Gb (.py)
+ * Projects 87,488
+ * Files 2,630,187
+ * Lines
+ * (sub-)Tokens
+
+ After filtering: X uniq files / YGb
+
+
+
 
 #### Java
 TBD
@@ -147,9 +172,10 @@ export PROJECT=<project-id>
 export ZONE=<zone>
 export TPU_NAME=t5-tpu
 export TPU_SIZE=v2-8
-export BUCKET=gs://t5-codex/
+export BUCKET=gs://t5-codex
 export DATA_DIR="${BUCKET}/data"
 export MODEL_DIR="${BUCKET}/models"
+EXPORT_DIR="${MODEL_DIR}/export"
 export TASK_NAME='py_50stars_top5k_2019'
 ```
 
@@ -179,15 +205,13 @@ python -m t5.models.mesh_transformer_main \
   --additional_task_cache_dirs='${BUCKET}/cache'
 ```
 
-```
 
 Un-cached .txt \w FunctionDataSource:
- * TPU v2-8, model_parallelism = 2
-   3h -> 9k steps
+ * TPU v2-8, bi_v1_prefix_lm, base, model_parallelism = 2
    global_step/sec: 0.89
    examples/sec: 110
 
- * TPU v2-8, model_parallelism = 1
+ * TPU v2-8, bi_v1_prefix_lm, base, model_parallelism = 1
    global_step/sec: 0.97
    examples/sec: 124
    FLOPS Utilization
@@ -196,7 +220,7 @@ Un-cached .txt \w FunctionDataSource:
    Memory Bandwidth Utilization: 40%
 
 Cached .tfrecords \w TextLineDataSource:
- * TPU v2-8, model_parallelism = 2
+ * TPU v2-8, bi_v1_prefix_lm, base, model_parallelism = 2
    global_step/sec: 0.87
    examples/sec: 111
    FLOPS Utilization
@@ -204,7 +228,7 @@ Cached .tfrecords \w TextLineDataSource:
      * Program's Optimal FLOPS: 51.5%
    Memory Bandwidth Utilization: 43.5%
 
- * TPU v2-8, model_parallelism = 1
+ * TPU v2-8, bi_v1_prefix_lm, base, model_parallelism = 1
    global_step/sec: 0.97
    examples/sec: 124
    FLOPS Utilization
@@ -212,7 +236,13 @@ Cached .tfrecords \w TextLineDataSource:
      * Program's Optimal FLOPS: 56.7%
    Memory Bandwidth Utilization: 40.6%
 
-To cache it
+ * TPU v2-8, bi_v1_prefix_lm, large, model_parallelism = 2
+    global_step/sec: 0.30
+    examples/sec: 39
+
+
+## Cache the dataset
+To cache the dataset on GCS as .tfrecords:
 ```
 gcloud auth application-default login
 pip install apache-beam[gcp] python-snappy
@@ -225,7 +255,9 @@ python -m seqio.scripts.cache_tasks_main \
 ```
 
 
-Eval on latest checkpoint
+## Evaluate
+
+Eval on latest checkpoint \w full decoding
 (27 Min initial padding on un-cached dataset :/)
 ```
 python -m t5.models.mesh_transformer_main  \
@@ -244,4 +276,80 @@ python -m t5.models.mesh_transformer_main  \
 
   --limit number of steps?
   --use cache?
+```
+
+Fast eval only calculating perplexity
+
+```
+python -m t5.models.mesh_transformer_main  \
+  --tpu="$TPU_ADDRESS" \
+  --model_dir="$MODEL_DIR" \
+  --t5_tfds_data_dir="$DATA_DIR" \
+  --module_import="codeT5.tasks" \
+  --gin_location_prefix="codeT5/gin/" \
+  --gin_file="models/shared-prefix_lm.gin" \
+  --gin_file="perplexity_eval.gin" \
+  --gin_file="beam_search.gin" \
+  --gin_param="utils.tpu_mesh_shape.tpu_topology = '$TPU_TOPOLOGY'" \
+  --gin_param="split = 'validation'" \
+  --gin_param="eval_checkpoint_step = -1" \
+  --gin_param="MIXTURE_NAME = 'py_50stars_top5k_2019'" \
+  --additional_task_cache_dirs='$BASE_DIR/cache' \
+  --gin_param="mesh_eval_dataset_fn.use_cached = True"
+```
+
+## Export the model
+
+```
+python -m t5.models.mesh_transformer_main \
+  --gcp_project="$PROJECT" \
+  --tpu_zone="$ZONE" \
+  --model_dir="$MODEL_DIR" \
+  --module_import="codeT5.tasks" \
+  --use_model_api \
+  --mode="export_predict" \
+  --export_dir="$EXPORT_DIR"
+```
+
+## Serve the predictions
+
+## TF Serving
+
+```
+export MODEL_NAME="<model>"
+export SAVED_MODEL_PATH="/path/to/export"
+
+sudo systemctl start docker
+
+gsutil cp "${BUCKET}/models/large/export/<number>" $SAVED_MODEL_PATH
+
+# Download the TensorFlow Serving Docker image and repo:
+docker pull tensorflow/serving:nightly
+
+# First, run a serving image as a daemon:
+docker run -d --name serving_base tensorflow/serving:nightly
+
+# Next, copy the `SavedModel` to the container's model folder:
+docker cp $SAVED_MODEL_PATH serving_base:/models/$MODEL_NAME
+
+# Now, commit the container that's serving the model:
+docker commit --change "ENV MODEL_NAME $MODEL_NAME" serving_base $MODEL_NAME
+
+# Finally, save the image to a tar file:
+docker save $MODEL_NAME -o $MODEL_NAME.tar
+
+# stop `serving_base`:
+docker kill serving_base
+
+
+sudo docker run -d --rm -p 8501:8501 \
+    --name "$MODEL_NAME-server" \
+    $MODEL_NAME --rest_api_timeout_in_ms=120000
+```
+
+Inference for a large model on CPU takes ~1min
+
+```
+time curl -d '{"inputs": ["import tensorflow as"]}' \
+  -X POST "http://localhost:8501/v1/models/$MODEL_NAME:predict"
 ```
