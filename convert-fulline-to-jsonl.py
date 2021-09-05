@@ -65,13 +65,16 @@ def process_single_repo(lang_repo_path: str, data_dir: str) -> DefaultDict[str, 
     org_path, repo = os.path.split(lang_repo_path.rstrip(os.path.sep))
     _, org = os.path.split(org_path)
 
-
     # read metadata from 'org/repo/branch/paths.json'
     paths = os.path.join(data_dir, "v3", "repositories", # "repositories", # top5k dataset has extra dir
                          org, repo, branch, "paths.json")
 
-    with open(paths, "rt", encoding="utf-8") as m:
-        metadata = json.load(m)
+    try:
+        with open(paths, "rt", encoding="utf-8") as m:
+            metadata = json.load(m)
+    except FileNotFoundError as fe:
+        err_stats['repos_skipped_cannt_read_paths'] = 1
+        return err_stats
 
     def process_file(org_repo, metadata, py_filepath, out):
         """Processes a single file in a given repo.
