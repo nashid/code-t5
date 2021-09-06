@@ -51,6 +51,11 @@ py_50_txt_path = {
     "validation": os.path.join(DATA_DIR, "py-50stars-2019", "py_50stars_2019.test.txt-*")
 }
 
+py_10_txt_path = {
+    "train": os.path.join(DATA_DIR, "py-10stars-2019", "py_10stars_2019.train.txt-*"),
+    "validation": os.path.join(DATA_DIR, "py-10stars-2019", "py_10stars_2019.test.txt-*")
+}
+
 
 def py5k_dataset_fn(split, shuffle_files=False):
     # In case when we only have one file for each split.
@@ -94,6 +99,22 @@ TaskRegistry.add(
     source=seqio.TextLineDataSource(
         split_to_filepattern=py_50_txt_path,
         num_input_examples={"train": 700000, "validation":352596},
+    ),
+    preprocessors=[
+        fl_preprocessor,
+        seqio.preprocessors.tokenize,
+        seqio.CacheDatasetPlaceholder(),
+        preprocessors.prefix_lm,
+        seqio.preprocessors.append_eos_after_trim,
+    ],
+    metric_fns=[t5.evaluation.metrics.accuracy],
+    output_features=DEFAULT_OUTPUT_FEATURES)
+
+TaskRegistry.add(
+    "py_10stars_2019",
+    source=seqio.TextLineDataSource(
+        split_to_filepattern=py_10_txt_path,
+        num_input_examples={"train": 1100000, "validation":559698},
     ),
     preprocessors=[
         fl_preprocessor,
