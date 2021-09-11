@@ -18,7 +18,6 @@ import os
 
 import seqio
 import t5.data
-import tensorflow_datasets as tfds
 from t5.data import preprocessors
 from t5.evaluation import metrics
 import tensorflow as tf

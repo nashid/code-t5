@@ -44,7 +44,7 @@ Sevral flavors of the 2019 [fl-dataset](https://jetbrains.team/p/ccrm/repositori
  * Projects 3047
  * Files 270,058
  * Lines 46,431,253
- * (sub-)Tokens 392,272,175
+ * (sub-)Tokens 309,363,978 + 82,908,197
 
 After filtering: 210k uniq files / 1.6Gb
 
@@ -64,7 +64,7 @@ Raw repositories: [1](https://5k-dataset.s3.amazonaws.com/v3/dataset-open-50-mor
  * Projects 37,847
  * Files 1,745,450
  * Lines 347,563,305
- * (sub-)Tokens 2,120,390,677
+ * (sub-)Tokens 1,403,667,659 + 716,723,018
 
  After filtering: 1,052,596 uniq files / 7.3Gb
 
@@ -260,6 +260,13 @@ Cached .tfrecords \w TextLineDataSource:
      * Utilization of TPU Matrix Units: 61.9%
      * Program's Optimal FLOPS: 56.7%
    Memory Bandwidth Utilization: 40.6%
+
+ * TPU v2-8, bi_v1_prefix_lm, base, model_parallelism = 1, tokens_per_microbatch_per_replica = None
+   global_step/sec: 1.01
+   examples/sec: 129
+   FLOPS Utilization
+     * Utilization of TPU Matrix Units: 66.0%
+     * Program's Optimal FLOPS: 59.8%
 
  * TPU v2-8, bi_v1_prefix_lm, large, model_parallelism = 2
     global_step/sec: 0.30
