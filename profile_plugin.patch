@@ -1,0 +1,20 @@
+--- profile_plugin_orig.py	2021-09-11 22:51:46.000000000 +0300
++++ profile_plugin_fixed.py	2021-09-11 22:51:17.000000000 +0300
+@@ -270,7 +270,7 @@
+ def _plugin_assets(logdir, runs, plugin_name):
+   result = {}
+   for run in runs:
+-    run_path = os.path.join(logdir, run)
++    run_path = os.path.join(logdir, run).rstrip('.')
+     assets = plugin_asset_util.ListAssets(run_path, plugin_name)
+     result[run] = assets
+   return result
+@@ -748,7 +748,7 @@
+     # Create a background context; we may not be in a request.
+     ctx = RequestContext()
+     tb_run_names_to_dirs = {
+-        run.run_name: os.path.join(self.logdir, run.run_name)
++        run.run_name: os.path.join(self.logdir, run.run_name).rstrip('.') # TODO(bzz): same as in _plugin_assets
+         for run in self.data_provider.list_runs(ctx, experiment_id='')
+     }
+     plugin_assets = _plugin_assets(self.logdir, list(tb_run_names_to_dirs),
