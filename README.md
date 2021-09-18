@@ -17,7 +17,7 @@
 
 ## Datasets
 
-We are using [google/seqio](https://github.com/google/seqio) library as way to feed the data into a model for training. 
+We are using [google/seqio](https://github.com/google/seqio) library as way to feed the data into a model for training.
 
 Below are the steps one needs to take to conver existing raw datasets into the intermediate JSONL format and then to a plain-text line-based format supported by the libraty. All that has already beed done for all the Python code in FL-Dataset and thus cached .tfrecords can be used directly for the training.
 
@@ -177,6 +177,20 @@ split -da 4 -l $((`wc -l < data/py5k-50.train.txt`/5)) data/py5k-50.train.txt da
 
 Change `DATA_DIR` in appropriate Task defined in `tasks.py`.
 
+
+### cuBERT github_python_minus_ethpy150open_dedup
+
+From 2016 Github dump on [BigQuery public dataset](https://github.com/google-research/google-research/tree/master/cubert#collection-query)
+
+ * Python: 42Gb / 26Gb
+ * Files: total 7,176,801 / uniq 3,820,448
+
+
+
+ ### top400k Github DB 2020
+
+ * Python 21.9GB
+ * Files: 3,140,462 uniq
 
 ## Train the model
 

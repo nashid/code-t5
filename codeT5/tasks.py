@@ -55,6 +55,12 @@ py_10_txt_path = {
     "validation": os.path.join(DATA_DIR, "py-10stars-2019", "py_10stars_2019.test.txt-*")
 }
 
+github_python_minus_ethpy150open_path = {
+    "train": os.path.join(DATA_DIR, "github_python_minus_ethpy150open_dedup", "github_py_minus_ethpy150.train.*.txt"),
+    "validation": os.path.join(DATA_DIR, "github_python_minus_ethpy150open_dedup", "github_py_minus_ethpy150.validation.*.txt")
+}
+
+
 
 def py5k_dataset_fn(split, shuffle_files=False):
     # In case when we only have one file for each split.
@@ -114,6 +120,22 @@ TaskRegistry.add(
     source=seqio.TextLineDataSource(
         split_to_filepattern=py_10_txt_path,
         num_input_examples={"train": 1100000, "validation":559698},
+    ),
+    preprocessors=[
+        fl_preprocessor,
+        seqio.preprocessors.tokenize,
+        seqio.CacheDatasetPlaceholder(),
+        preprocessors.prefix_lm,
+        seqio.preprocessors.append_eos_after_trim,
+    ],
+    metric_fns=[t5.evaluation.metrics.accuracy],
+    output_features=DEFAULT_OUTPUT_FEATURES)
+
+TaskRegistry.add(
+    "github_python_minus_ethpy150",
+    source=seqio.TextLineDataSource(
+        split_to_filepattern=github_python_minus_ethpy150open_path,
+        num_input_examples={"train": 5884757, "validation": 1292044},
     ),
     preprocessors=[
         fl_preprocessor,
