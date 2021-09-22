@@ -51,7 +51,7 @@ setuptools.setup(
     name='dependency-holder',
     version='0.0.1',
     description='Placeholder for binary-only dependency.',
-    install_requires=[],
+    install_requires=['t5'],
     packages=setuptools.find_packages(),
     cmdclass={
         # Command class instantiated and run during pip install scenarios.
