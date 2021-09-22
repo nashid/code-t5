@@ -4,3 +4,5 @@ data/jsonl/
 .ipynb_checkpoints
 .vscode
 .venv
+__pycache__
+.DS_Store

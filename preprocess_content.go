@@ -40,8 +40,6 @@ type Message struct {
 // Reads JSONL from STDIN, extracts "content" and compute it's MD5
 // ls data/py_file_content.jsonl-* | parallel "gzcat {} | go run preprocess_content.go"
 func main() {
-	// stats := map[string]int{}
-
 	f, err := os.CreateTemp("data", "github_py_minus_ethpy150.*.txt")
 	check(err)
 
@@ -74,27 +72,13 @@ func main() {
 		//TODO(bzz): skip files \w lines too long
 		//TODO(bzz): replace \n -> newlineReplacement
 
-		//TODO(bzz): write output to file
-
-		// if strings.Contains(m.Content, "\r\n") {
-		// 	stats["\\r\\n"] += 1
-		// } else if strings.Contains(m.Content, "\n") {
-		// 	stats["\\n"] += 1
-		// }
-
 		// fmt.Printf("%x\n", h.Sum(nil))
 
 		h.Reset()
-		// break
 	}
 
 	err = f.Close()
 	check(err)
-
-	// for k, v := range stats {
-	// 	fmt.Printf("%s %d\n", k, v)
-	// }
-
 }
 
 func check(e error) {

@@ -19,6 +19,11 @@ import t5.data
 MixtureRegistry = seqio.MixtureRegistry
 
 MixtureRegistry.add(
-    "all_py_2019_mix", # all python repos with >10 stars
-    ["py_50stars_2019", "py_10stars_2019"],
+    "fl_py_2019_mix", # all python repos \w >10 stars in FullLine dataset
+    ["fl_py_50stars_2019", "fl_py_10stars_2019"],
+    default_rate=t5.data.rate_num_examples)
+
+MixtureRegistry.add(
+    "fl_bq_py_mix", # all Python data in FullLine and Github BigQuery datasets
+    ["bq_py_2016_minus_ethpy150", "fl_py_50stars_2019", "fl_py_10stars_2019"],
     default_rate=t5.data.rate_num_examples)

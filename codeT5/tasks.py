@@ -13,13 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import functools
 import os
 
 import seqio
 import t5.data
 from t5.data import preprocessors
-from t5.evaluation import metrics
 import tensorflow as tf
 
 TaskRegistry = seqio.TaskRegistry
@@ -82,9 +80,9 @@ def fl_preprocessor(ds):
                 num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
 
-# Prefix language modeling pretraining task used in Raffel et al., 2019.
+# FullLine dataset for Prefix language modeling pretraining, as in Raffel et al., 2019.
 TaskRegistry.add(
-    "py_50stars_top5k_2019",
+    "fl_py_50stars_top5k_2019",
     source=seqio.TextLineDataSource(
         split_to_filepattern=py_50_top5k_txt_path,
         num_input_examples={"train": 170000, "validation":40815},
@@ -100,7 +98,7 @@ TaskRegistry.add(
     output_features=DEFAULT_OUTPUT_FEATURES)
 
 TaskRegistry.add(
-    "py_50stars_2019",
+    "fl_py_50stars_2019",
     source=seqio.TextLineDataSource(
         split_to_filepattern=py_50_txt_path,
         num_input_examples={"train": 700000, "validation":352596},
@@ -116,7 +114,7 @@ TaskRegistry.add(
     output_features=DEFAULT_OUTPUT_FEATURES)
 
 TaskRegistry.add(
-    "py_10stars_2019",
+    "fl_py_10stars_2019",
     source=seqio.TextLineDataSource(
         split_to_filepattern=py_10_txt_path,
         num_input_examples={"train": 1100000, "validation":559698},
@@ -131,8 +129,9 @@ TaskRegistry.add(
     metric_fns=[t5.evaluation.metrics.accuracy],
     output_features=DEFAULT_OUTPUT_FEATURES)
 
+# BigQuery Github dataset
 TaskRegistry.add(
-    "github_python_minus_ethpy150",
+    "bq_py_2016_minus_ethpy150",
     source=seqio.TextLineDataSource(
         split_to_filepattern=github_python_minus_ethpy150open_path,
         num_input_examples={"train": 5884757, "validation": 1292044},
