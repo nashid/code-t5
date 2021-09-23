@@ -13,7 +13,8 @@
   * [Evaluate](#evaluate)
   * [Export the model](#export-the-model)
   * [Serve the predictions](#serve-the-predictions)
-  * [TF Serving](#tf-serving)
+    * [TF Serving](#tf-serving)
+    * [Optimizing the model](#optimizing-the-model)
 
 ## Datasets
 
@@ -104,7 +105,6 @@ Pre-processed
  * [cache in .tfrecord](gs://t5-codex/cache/py_50stars_2019)
 
 
-
 #### Java
 TBD
 
@@ -184,6 +184,7 @@ From 2016 Github dump on [BigQuery public dataset](https://github.com/google-res
 
  * Python: 42Gb / 26Gb
  * Files: total 7,176,801 / uniq 3,820,448
+ * (sub-)Tokens:  7,979,952,884 + 1,754,768,276
 
  1. create a BigQuery table pointing to GCS `gs://cubert/20200621_Python/github_python_minus_ethpy150open_deduplicated_manifest/manifest.jsontxt-*`
  2. run the query (processing 2.3 Tb)

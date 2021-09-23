@@ -38,24 +38,24 @@ DEFAULT_OUTPUT_FEATURES = {
 
 DATA_DIR = "gs://t5-codex/data"
 
-py_50_top5k_txt_path = {
-    "train": os.path.join(DATA_DIR, "py-50stars-top5k-2019", "py5k-50.train.txt-*"),
-    "validation": os.path.join(DATA_DIR, "py-50stars-top5k-2019", "py5k-50.test.txt")
+fl_py_50stars_top5k_txt_paths = {
+    "train": os.path.join(DATA_DIR, "fl_py_50stars_top5k_2019", "py5k-50.train.txt-*"),
+    "validation": os.path.join(DATA_DIR, "fl_py_50stars_top5k_2019", "py5k-50.test.txt")
 }
 
-py_50_txt_path = {
-    "train": os.path.join(DATA_DIR, "py-50stars-2019", "py_50stars_2019.train.txt-*"),
-    "validation": os.path.join(DATA_DIR, "py-50stars-2019", "py_50stars_2019.test.txt-*")
+fl_py_50stars_2019_txt_paths = {
+    "train": os.path.join(DATA_DIR, "fl_py_50stars_201", "py_50stars_2019.train.txt-*"),
+    "validation": os.path.join(DATA_DIR, "fl_py_50stars_201", "py_50stars_2019.test.txt-*")
 }
 
-py_10_txt_path = {
-    "train": os.path.join(DATA_DIR, "py-10stars-2019", "py_10stars_2019.train.txt-*"),
-    "validation": os.path.join(DATA_DIR, "py-10stars-2019", "py_10stars_2019.test.txt-*")
+fl_py_10stars_2019_txt_paths = {
+    "train": os.path.join(DATA_DIR, "fl_py_10stars_2019", "py_10stars_2019.train.txt-*"),
+    "validation": os.path.join(DATA_DIR, "fl_py_10stars_2019", "py_10stars_2019.test.txt-*")
 }
 
-github_python_minus_ethpy150open_path = {
-    "train": os.path.join(DATA_DIR, "github_python_minus_ethpy150open_dedup", "github_py_minus_ethpy150.train.*.txt"),
-    "validation": os.path.join(DATA_DIR, "github_python_minus_ethpy150open_dedup", "github_py_minus_ethpy150.validation.*.txt")
+bq_py_2016_minus_ethpy150_paths = {
+    "train": os.path.join(DATA_DIR, "bq_py_2016_minus_ethpy150", "github_py_minus_ethpy150.train.*.txt"),
+    "validation": os.path.join(DATA_DIR, "bq_py_2016_minus_ethpy150", "github_py_minus_ethpy150.validation.*.txt")
 }
 
 
@@ -84,7 +84,7 @@ def fl_preprocessor(ds):
 TaskRegistry.add(
     "fl_py_50stars_top5k_2019",
     source=seqio.TextLineDataSource(
-        split_to_filepattern=py_50_top5k_txt_path,
+        split_to_filepattern=fl_py_50stars_top5k_txt_paths,
         num_input_examples={"train": 170000, "validation":40815},
     ),
     preprocessors=[
@@ -100,7 +100,7 @@ TaskRegistry.add(
 TaskRegistry.add(
     "fl_py_50stars_2019",
     source=seqio.TextLineDataSource(
-        split_to_filepattern=py_50_txt_path,
+        split_to_filepattern=fl_py_50stars_2019_txt_paths,
         num_input_examples={"train": 700000, "validation":352596},
     ),
     preprocessors=[
@@ -116,7 +116,7 @@ TaskRegistry.add(
 TaskRegistry.add(
     "fl_py_10stars_2019",
     source=seqio.TextLineDataSource(
-        split_to_filepattern=py_10_txt_path,
+        split_to_filepattern=fl_py_10stars_2019_txt_paths,
         num_input_examples={"train": 1100000, "validation":559698},
     ),
     preprocessors=[
@@ -133,7 +133,7 @@ TaskRegistry.add(
 TaskRegistry.add(
     "bq_py_2016_minus_ethpy150",
     source=seqio.TextLineDataSource(
-        split_to_filepattern=github_python_minus_ethpy150open_path,
+        split_to_filepattern=bq_py_2016_minus_ethpy150_paths,
         num_input_examples={"train": 5884757, "validation": 1292044},
     ),
     preprocessors=[
