@@ -44,8 +44,8 @@ fl_py_50stars_top5k_txt_paths = {
 }
 
 fl_py_50stars_2019_txt_paths = {
-    "train": os.path.join(DATA_DIR, "fl_py_50stars_201", "py_50stars_2019.train.txt-*"),
-    "validation": os.path.join(DATA_DIR, "fl_py_50stars_201", "py_50stars_2019.test.txt-*")
+    "train": os.path.join(DATA_DIR, "fl_py_50stars_2019", "py_50stars_2019.train.txt-*"),
+    "validation": os.path.join(DATA_DIR, "fl_py_50stars_2019", "py_50stars_2019.test.txt-*")
 }
 
 fl_py_10stars_2019_txt_paths = {
