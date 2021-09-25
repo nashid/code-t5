@@ -14,39 +14,74 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from codeT5.tasks import py5k_dataset_fn as dataset_fn
-import tensorflow_datasets as tfds
+import argparse
 
-limit = 2
+import tensorflow as tf
 
-print("A few raw validation examples...")
-for ex in tfds.as_numpy(dataset_fn("validation").take(limit)):
-  print(ex)
 
-print()
 
-#----
+def main(args):
+    if not args.task:
+        print("No Task name was provided wiht --task/-t\nLoading available tasks...")
+        import seqio
+        import codeT5.tasks  # pylint:disable=unused-import
+        print("Available Mixtures")
+        print(seqio.MixtureRegistry.names())
+        print()
+        print("Available Tasks")
+        print(seqio.TaskRegistry.names())
+        return
 
-import codeT5.tasks # pylint:disable=unused-import
-import t5.data.mixtures;
+    print("Loading a list of the datasets (takes 10sec)")
+    import seqio
+    import t5
+    import tensorflow_datasets as tfds
+    import codeT5.tasks  # pylint:disable=unused-import
+    print("Done")
 
-print(t5.data.MixtureRegistry.names())
-print()
-print(t5.data.TaskRegistry.names())
-print()
+    vocab = seqio.SentencePieceVocabulary("data/py5k-50.model",
+                                          t5.data.DEFAULT_EXTRA_IDS)
+    def decode(s):
+        return vocab.decode(s.tolist()).replace('Ċ', '\n')
 
-#----
-import seqio;
+    task = seqio.TaskRegistry().get(args.task)
+    ds = task.get_dataset(split=args.split,
+                          sequence_length={
+                              "inputs": args.inputs,
+                              "targets": args.targets
+                          })  #4k samples
+    print(f"\nsequence_length = {{'inputs': {args.inputs}, 'targets': {args.targets}}}")
+    print(f"{args.limit} of {task.source.num_input_examples(args.split)} examples from '{args.split}'")
+    for ex in tfds.as_numpy(ds.take(args.limit)):
+        print("----")
+        print(ex)
+        print(f"Intputs: {tf.size(ex['inputs'])}\n'{decode(ex['inputs'])}'")
+        print(f"Targets: {tf.size(ex['targets'])}\n'{decode(ex['targets'])}'")
+        print("----")
+        print()
 
-vocab = seqio.SentencePieceVocabulary("data/py5k-50.model", t5.data.DEFAULT_EXTRA_IDS)
-task = seqio.TaskRegistry().get("py5k_prefix_lm")
-ds = task.get_dataset(split="validation", sequence_length={"inputs": 128, "targets": 128}) #4k samples
 
-print("A few raw validation examples...")
-for ex in tfds.as_numpy(ds.take(limit)):
-    print(ex)
-    print()
-    print(vocab.decode_tf(ex['inputs']))
-    print(vocab.decode_tf(ex['targets']))
-    print()
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description='Print examples for a give Task or Mixture', )
 
+    parser.add_argument(
+        '-t', '--task',
+        help="Name of the Task/Mixture to read")
+    parser.add_argument(
+        '--split', type=str, default="validation",
+        help="Name of the dataset split to use (train/validation)")
+    parser.add_argument(
+        '-l', '--limit', type=int, default=10,
+        help="limit number of examples to print")
+    parser.add_argument(
+        '--inputs', type=int, default=128,
+        help="length of the Inputs")
+    parser.add_argument(
+        '--targets', type=int, default=128,
+        help="length of the Targets")
+
+
+
+    args = parser.parse_args()
+    main(args)
