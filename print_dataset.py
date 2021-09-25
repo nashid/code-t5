@@ -45,13 +45,16 @@ def main(args):
         return vocab.decode(s.tolist()).replace('Ċ', '\n')
 
     task = seqio.TaskRegistry().get(args.task)
+    if args.cache_dir:
+      seqio.utils.add_global_cache_dirs([args.cache_dir])
+
     ds = task.get_dataset(split=args.split,
                           sequence_length={
                               "inputs": args.inputs,
                               "targets": args.targets
-                          })  #4k samples
+                          }, use_cached= True if args.cache_dir else False)
     print(f"\nsequence_length = {{'inputs': {args.inputs}, 'targets': {args.targets}}}")
-    print(f"{args.limit} of {task.source.num_input_examples(args.split)} examples from '{args.split}'")
+    print(f"Printing {args.limit} of {task.source.num_input_examples(args.split)} examples from '{args.split}'")
     for ex in tfds.as_numpy(ds.take(args.limit)):
         print("----")
         print(ex)
@@ -80,6 +83,9 @@ if __name__ == '__main__':
     parser.add_argument(
         '--targets', type=int, default=128,
         help="length of the Targets")
+    parser.add_argument(
+        '--cache_dir', type=str, default="gs://t5-codex/cache",
+        help="Path to the preprocessed dataset cache")
 
 
 
