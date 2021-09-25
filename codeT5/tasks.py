@@ -65,7 +65,7 @@ def py5k_dataset_fn(split, shuffle_files=False):
     del shuffle_files
 
     # Load lines from the text file as examples.
-    ds = tf.data.TextLineDataset(py_50_top5k_txt_path[split])
+    ds = tf.data.TextLineDataset(fl_py_50stars_top5k_txt_paths[split])
     ds = ds.map(lambda ex: {"text": ex},
                 num_parallel_calls=tf.data.experimental.AUTOTUNE)
     return ds
@@ -91,7 +91,7 @@ TaskRegistry.add(
         fl_preprocessor,
         seqio.preprocessors.tokenize,
         seqio.CacheDatasetPlaceholder(),
-        preprocessors.prefix_lm,
+        preprocessors.unsupervised,
         seqio.preprocessors.append_eos_after_trim,
     ],
     metric_fns=[t5.evaluation.metrics.accuracy],
@@ -107,7 +107,7 @@ TaskRegistry.add(
         fl_preprocessor,
         seqio.preprocessors.tokenize,
         seqio.CacheDatasetPlaceholder(),
-        preprocessors.prefix_lm,
+        preprocessors.unsupervised,
         seqio.preprocessors.append_eos_after_trim,
     ],
     metric_fns=[t5.evaluation.metrics.accuracy],
@@ -123,7 +123,7 @@ TaskRegistry.add(
         fl_preprocessor,
         seqio.preprocessors.tokenize,
         seqio.CacheDatasetPlaceholder(),
-        preprocessors.prefix_lm,
+        preprocessors.unsupervised,
         seqio.preprocessors.append_eos_after_trim,
     ],
     metric_fns=[t5.evaluation.metrics.accuracy],
@@ -140,7 +140,7 @@ TaskRegistry.add(
         fl_preprocessor,
         seqio.preprocessors.tokenize,
         seqio.CacheDatasetPlaceholder(),
-        preprocessors.prefix_lm,
+        preprocessors.unsupervised,
         seqio.preprocessors.append_eos_after_trim,
     ],
     metric_fns=[t5.evaluation.metrics.accuracy],

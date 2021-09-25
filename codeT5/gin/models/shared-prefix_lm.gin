@@ -199,8 +199,9 @@ serialize_num_microbatches.tokens_per_microbatch_per_replica = 2048
 # Parameters for split_tokens:
 # ==============================================================================
 split_tokens.feature_key = 'targets'
+split_tokens.min_tokens_per_segment = None
 
-# Parameters for split_tokens_to_random_length:
+# Parameters for split_tokens_to_inputs_length:
 # ==============================================================================
 # None.
 
@@ -249,5 +250,5 @@ encoder/Unitransformer.z_loss = 0.0001
 # ==============================================================================
 unsupervised.preprocessors = \
     [@preprocessors.select_random_chunk,
-     @preprocessors.split_tokens_to_random_length,
+     @preprocessors.split_tokens_to_inputs_length,
      @preprocessors.denoise]
