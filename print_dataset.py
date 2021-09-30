@@ -19,7 +19,6 @@ import argparse
 import tensorflow as tf
 
 
-
 def main(args):
     if not args.task:
         print("No Task name was provided wiht --task/-t\nLoading available tasks...")
@@ -33,8 +32,10 @@ def main(args):
         return
 
     print("Loading a list of the datasets (takes 10sec)")
+    import gin
     import seqio
     import t5
+    from t5.data import preprocessors
     import tensorflow_datasets as tfds
     import codeT5.tasks  # pylint:disable=unused-import
     print("Done")
@@ -45,8 +46,16 @@ def main(args):
         return vocab.decode(s.tolist()).replace('Ċ', '\n')
 
     task = seqio.TaskRegistry().get(args.task)
+    with gin.unlock_config():
+        gin.bind_parameter("preprocessors.unsupervised.preprocessors", [
+          preprocessors.select_random_chunk,
+          preprocessors.reduce_concat_tokens,
+          preprocessors.split_tokens_to_targets_length,
+        ])
+        gin.bind_parameter("preprocessors.select_random_chunk.max_length", 65536)
+
     if args.cache_dir:
-      seqio.utils.add_global_cache_dirs([args.cache_dir])
+        seqio.utils.add_global_cache_dirs([args.cache_dir])
 
     ds = task.get_dataset(split=args.split,
                           sequence_length={
@@ -58,7 +67,8 @@ def main(args):
     for ex in tfds.as_numpy(ds.take(args.limit)):
         print("----")
         print(ex)
-        print(f"Intputs: {tf.size(ex['inputs'])}\n'{decode(ex['inputs'])}'")
+        if 'inputs' in ex:
+            print(f"Intputs: {tf.size(ex['inputs'])}\n'{decode(ex['inputs'])}'")
         print(f"Targets: {tf.size(ex['targets'])}\n'{decode(ex['targets'])}'")
         print("----")
         print()
