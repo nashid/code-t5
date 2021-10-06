@@ -6,3 +6,4 @@ data/jsonl/
 .venv
 __pycache__
 .DS_Store
+predict_outputs-*
