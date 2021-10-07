@@ -7,6 +7,8 @@ if [[ $# -eq 0 ]] ; then
     exit 1
 fi
 
+hash gsutil 2>/dev/null || { echo >&2 "Please install https://cloud.google.com/storage/docs/gsutil_install"; exit 1; }
+
 model=$1
 checkpoint=$2
 
