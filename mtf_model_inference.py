@@ -6,7 +6,7 @@ import t5.models
 import tensorflow as tf
 import seqio
 
-#import codeT5
+import codeT5.models
 from mock_data import inputs
 
 
@@ -18,9 +18,9 @@ def tf_verbosity_level(level):
   tf.compat.v1.logging.set_verbosity(og_level)
 
 def main(args):
-  MODEL_DIR=os.path.join("models", args.arch) #"gs://t5-codex/models/arch-lm_v1-lm" # "gs://t5-codex/models/base_shared_1k"
+  MODEL_DIR=os.path.join(args.models_dir, args.arch) #"gs://t5-codex/models/arch-lm_v1-lm" # "gs://t5-codex/models/base_shared_1k"
 
-  model = t5.models.MtfModel(
+  model = codeT5.models.CustomMtfModel(
       model_dir=MODEL_DIR,
       tpu=None,
       model_type="lm" if "arch-lm" in args.arch else "bitransformer",
@@ -70,6 +70,11 @@ if __name__ == '__main__':
         '-a', '--arch',
         type=str, default="arch-lm_v1-lm",
         help="Model architecture")
+    parser.add_argument(
+        '-m', '--models_dir',
+        type=str, default='models', # or 'gs://t5-codex/models'
+        help='Path to the dir with sub-directories for individual checkpoints')
+
 
     args = parser.parse_args()
     main(args)
