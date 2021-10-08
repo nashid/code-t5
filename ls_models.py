@@ -13,10 +13,21 @@ def sizeof_fmt(num):
             return f"{num:3.1f}{unit}"
         num /= 1024.0
 
+def remove_suffix(s, suffix):
+    if suffix and s.endswith(suffix):
+        return s[:-len(suffix)]
+    return s
+
+def remove_prefix(s, prefix):
+    if prefix and s.startswith(prefix):
+        return s[len(prefix):]
+    return s
+
+
 def main(args):
     MODELS_DIR=args.models_dir
     print(f"Listing all models at '{MODELS_DIR}'")
-    print("\t{:35} {:6} {:6}/{} {}".format("Model", "tokens", "steps", "ch", "tokens_per_batch"))
+    print("\t{:35} {:6} {:>6}/{} {}".format("Model", "tokens", "steps", "ch", "tokens_per_batch"))
     print("\t----------------------")
 
     for dir in tf.io.gfile.glob(f"{MODELS_DIR}/*"):
@@ -26,7 +37,7 @@ def main(args):
         if model.endswith("-top5k"):
             continue
         checkpoints = tf.io.gfile.glob(f"{MODELS_DIR}/{model}/model.ckpt-*.meta")
-        checkpoints = [ int(os.path.basename(ch).split("-")[-1].removesuffix(".meta")) for ch in checkpoints ]
+        checkpoints = [ int(remove_suffix(os.path.basename(ch).split("-")[-1], ".meta")) for ch in checkpoints ]
         checkpoints = sorted(checkpoints)
 
         num_checkpoints=len(checkpoints)
@@ -40,7 +51,7 @@ def main(args):
                 batch_size=int(m[0])
         trained_on = sizeof_fmt(steps*batch_size)
 
-        print(f"\t{dir.removeprefix(MODELS_DIR)[1:]:35} {trained_on:6} {steps:6}/{num_checkpoints:<3} {batch_size}")
+        print(f"\t{remove_prefix(dir, MODELS_DIR)[1:]:35} {trained_on:6} {steps:6}/{num_checkpoints:<3} {batch_size}")
 
 
 if __name__ == '__main__':

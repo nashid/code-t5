@@ -145,7 +145,7 @@ class CustomMtfModel(t5.models.MtfModel):
             gin.bind_parameter("Bitransformer.decode.sampling_keep_top_k", keep_top_k)
             gin.bind_parameter("utils.decode_from_file.input_filename", input_file)
             gin.bind_parameter("utils.decode_from_file.output_filename", output_file)
-            if self.gpu:
+            if self.gpu: # use 1 GPU
                 gin.bind_parameter("utils.run.mesh_shape", "model:1,batch:")
                 gin.bind_parameter("utils.run.mesh_devices", "['gpu:0']")
         if vocabulary is None:
