@@ -3,6 +3,7 @@ from codeT5.models.mtf_model import CustomMtfModel
 import os
 from contextlib import contextmanager
 
+import numpy as np
 import tensorflow as tf
 from human_eval.data import read_problems, write_jsonl
 #from human_eval.data import write_jsonl, read_problems, HUMAN_EVAL
@@ -50,19 +51,19 @@ def main(args):
         gpu=tf.test.is_gpu_available(),
         model_type="lm" if "arch-lm" in args.arch else "bitransformer",
         model_parallelism=1,
-        batch_size=2,
+        batch_size=2, # 8 on TPUv2-8?
         sequence_length={"inputs": 512, "targets": 512},
     )
 
     # prepare the input from HumanEval problems
     predict_inputs_path = "predict_inputs.txt"
     problems = read_problems(args.problem_file)
-    sorted_pk = sorted(problems.keys(), key=lambda s: int(s[s.index("/") + 1:]) if "/" in s else -1)
+    sorted_problems = sorted(problems.keys(), key=lambda s: int(s[s.index("/") + 1:]) if "/" in s else -1)
+    sorted_problems = np.repeat(sorted_problems, args.num_samples)
     with tf.io.gfile.GFile(predict_inputs_path, "w") as f:
-        for i in sorted_pk:
-            # TODO(bzz): support multiple samples
-            f.write(pre_process(problems[i]["prompt"]))
-            f.write("\n")
+        for i in sorted_problems:
+                f.write(pre_process(problems[i]["prompt"]))
+                f.write("\n")
         
     predict_outputs_path = "predict_outputs.txt"
     with tf_verbosity_level('ERROR'):
@@ -76,7 +77,7 @@ def main(args):
     # read the output
     results = []
     with tf.io.gfile.GFile(predict_outputs_path) as f:
-        for i, o in zip(sorted_pk, f):
+        for i, o in zip(sorted_problems, f):
             if o:
                 output = post_process(o)
                 task_result = {
@@ -84,7 +85,7 @@ def main(args):
                     "completion": output #" " + output if with_additional_space else output
                 }
                 results.append(task_result)
-    output_file=f"{args.output_file}-{args.arch}.jsonl"
+    output_file=f"{args.output_file}-{args.arch}.jsonl" #TODO(bzz): add checkpoint number!
     print(f"Writing results to {output_file}")
     write_jsonl(output_file, results)
 
@@ -101,6 +102,10 @@ if __name__ == '__main__':
         '-t', '--temp',
         type=float, default=0.6,
         help="Sampling temperature")
+    parser.add_argument(
+        '-n', '--num_samples',
+        type=int, default=1,
+        help="Number of samples")
     parser.add_argument(
         '-a', '--arch',
         type=str, default="arch-lm_v1-lm",
