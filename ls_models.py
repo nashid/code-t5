@@ -14,10 +14,11 @@ def sizeof_fmt(num):
         num /= 1024.0
 
 def main(args):
+    MODELS_DIR=args.models_dir
+    print(f"Listing all models at '{MODELS_DIR}'")
     print("\t{:35} {:6} {:6}/{} {}".format("Model", "tokens", "steps", "ch", "tokens_per_batch"))
     print("\t----------------------")
 
-    MODELS_DIR=args.models_dir
     for dir in tf.io.gfile.glob(f"{MODELS_DIR}/*"):
         if not (dir.startswith("gs://") or os.path.isdir(dir)):
             continue

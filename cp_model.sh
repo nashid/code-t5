@@ -2,8 +2,9 @@
 
 # Downloads a given model from GSC to ./models
 
-if [[ $# -eq 0 ]] ; then
-    echo 'Provide a model name and a checkpoint number. Use ./ls_models.py to get those'
+if [[ $# -ne 2 ]] ; then
+    echo 'Usage: ./cp_model.sh <model_name> <checkpoint>'
+    echo 'Run ./ls_models.py to get those values'
     exit 1
 fi
 
