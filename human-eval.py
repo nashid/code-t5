@@ -44,11 +44,13 @@ def post_process(s):
 
 def main(args):
     MODEL_DIR=os.path.join(args.models_dir, args.arch)
+    gpu = tf.test.is_gpu_available()
 
     model = codeT5.models.CustomMtfModel(
         model_dir=MODEL_DIR,
         tpu=args.tpu if args.tpu else None,
-        gpu=tf.test.is_gpu_available(),
+        mesh_shape="model:1,batch:1" if gpu else None,
+        mesh_devices=['gpu:0'] if gpu else None,
         model_type="lm" if "arch-lm" in args.arch else "bitransformer",
         model_parallelism=1,
         batch_size=2, # 8 on TPUv2-8?

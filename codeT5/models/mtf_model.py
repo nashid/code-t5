@@ -86,7 +86,6 @@ class CustomMtfModel(t5.models.MtfModel):
         tpu_zone=None,
         gcp_project=None,
         tpu_topology="v2-8",
-        gpu=None, # GPU support
         model_parallelism=8,
         batch_size=("sequences_per_batch", 1),
         sequence_length=None,
@@ -129,7 +128,6 @@ class CustomMtfModel(t5.models.MtfModel):
             iterations_per_loop=iterations_per_loop,
             extra_gin_bindings=extra_gin_bindings
         )
-        self.gpu = gpu
 
     def predict(self, input_file, output_file, checkpoint_steps=-1,
                 beam_size=1, temperature=1.0, keep_top_k=-1, vocabulary=None):
@@ -143,9 +141,6 @@ class CustomMtfModel(t5.models.MtfModel):
             gin.bind_parameter("Bitransformer.decode.sampling_keep_top_k", keep_top_k)
             gin.bind_parameter("utils.decode_from_file.input_filename", input_file)
             gin.bind_parameter("utils.decode_from_file.output_filename", output_file)
-            if self.gpu: # use 1 GPU
-                gin.bind_parameter("utils.run.mesh_shape", "model:1,batch:1")
-                gin.bind_parameter("utils.run.mesh_devices", "['gpu:0']")
         if vocabulary is None:
             vocabulary = utils.get_vocabulary()
         mtf_utils.infer_model(
