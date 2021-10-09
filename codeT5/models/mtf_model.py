@@ -12,7 +12,6 @@ import tensorflow as tf
 #
 # The difference with a library version is this line, where we decode prediction before recording it to a file:
 # decodes = [decoded_output.decode('utf-8') for decoded_output in decodes[:dataset_size]]
-# And running over multiple checkpoint scenario is not supported.
 #
 # The function is not '@gin.configurable', 
 # so values of 'input_filename' and 'output_filename' parameters are set explicitly
@@ -63,8 +62,7 @@ def decode_from_file_utf(estimator,
 
   decodes = [decoded_output.decode('utf-8') for decoded_output in decodes[:dataset_size]]
 
-  # does not support running over multiple checkpoints now
-  #output_filename = "{}-{}".format(output_filename, checkpoint_step)
+  output_filename = "{}-{}".format(output_filename, checkpoint_step)
   mtf_utils.write_lines_to_file(decodes, output_filename)
 
 
@@ -146,7 +144,7 @@ class CustomMtfModel(t5.models.MtfModel):
             gin.bind_parameter("utils.decode_from_file.input_filename", input_file)
             gin.bind_parameter("utils.decode_from_file.output_filename", output_file)
             if self.gpu: # use 1 GPU
-                gin.bind_parameter("utils.run.mesh_shape", "model:1,batch:")
+                gin.bind_parameter("utils.run.mesh_shape", "model:1,batch:1")
                 gin.bind_parameter("utils.run.mesh_devices", "['gpu:0']")
         if vocabulary is None:
             vocabulary = utils.get_vocabulary()

@@ -74,9 +74,12 @@ def main(args):
             temperature=args.temp,
         )
 
-    # read the output
+    # read the output (suffix '-{checkpoint}' was added)
     results = []
-    with tf.io.gfile.GFile(predict_outputs_path) as f:
+    prediction_files = sorted(tf.io.gfile.glob(predict_outputs_path + "*"), key=lambda s: int(s.split("-")[-1]))
+    checkpoint = prediction_files[-1].split("-")[-1]
+    print("\nPredictions using checkpoint %s:\n" % checkpoint)
+    with tf.io.gfile.GFile(prediction_files[-1]) as f:
         for i, o in zip(sorted_problems, f):
             if o:
                 output = post_process(o)
@@ -85,7 +88,7 @@ def main(args):
                     "completion": output #" " + output if with_additional_space else output
                 }
                 results.append(task_result)
-    output_file=f"{args.output_file}-{args.arch}.jsonl" #TODO(bzz): add checkpoint number!
+    output_file=f"{args.output_file}-{args.arch}-{checkpoint}.jsonl"
     print(f"Writing results to {output_file}")
     write_jsonl(output_file, results)
 
