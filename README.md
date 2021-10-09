@@ -1,20 +1,23 @@
 # Train T5 language model
 
   * [Datasets](#datasets)
-    * [Pre-processing &amp; filtering](#pre-processing--filtering)
-    * [FL-Dataset](#fl-dataset)
-        * [Python: Top 5k repos &gt;50 stars](#python-top-5k-repos-50-stars)
-        * [Python: all repos &gt;50 stars](#python-all-repos-50-stars)
-        * [Python: all repos from 10 to 50 stars](#python-all-repos-from-10-to-50-stars)
-        * [Java](#java)
-        * [Preprocessing](#preprocessing)
-  * [Train the model](#train-the-model)
-  * [Cache the dataset](#cache-the-dataset)
-  * [Evaluate](#evaluate)
-  * [Export the model](#export-the-model)
-  * [Serve the predictions](#serve-the-predictions)
-    * [TF Serving](#tf-serving)
-    * [Optimizing the model](#optimizing-the-model)
+      * [Pre-processing &amp; filtering](#pre-processing--filtering)
+      * [FL-Dataset](#fl-dataset)
+         * [Python: Top 5k repos &gt;50 stars](#python-top-5k-repos-50-stars)
+         * [Python: all repos &gt;50 stars](#python-all-repos-50-stars)
+         * [Python: all repos from 10 to 50 stars](#python-all-repos-from-10-to-50-stars)
+         * [Java](#java)
+         * [Preprocessing](#preprocessing)
+      * [cuBERT github_python_minus_ethpy150open_dedup](#cubert-github_python_minus_ethpy150open_dedup)
+      * [top400k Github DB 2020](#top400k-github-db-2020)
+   * [Train the model](#train-the-model)
+   * [Cache the dataset](#cache-the-dataset)
+   * [Evaluate](#evaluate)
+      * [HumanEval](#humaneval)
+   * [Export the model](#export-the-model)
+   * [Serve the predictions](#serve-the-predictions)
+      * [Optimizing the model](#optimizing-the-model)
+      * [TF Serving](#tf-serving)
 
 ## Datasets
 
@@ -365,6 +368,26 @@ python -m t5.models.mesh_transformer_main  \
   --gin_param="MIXTURE_NAME = '${TASK_NAME}'" \
   --additional_task_cache_dirs='$BASE_DIR/cache' \
   --gin_param="mesh_eval_dataset_fn.use_cached = True"
+```
+
+### HumanEval
+
+How to run HumanEval locally
+```
+./ls_models.py
+./cp_model <arch> <checkpoint>
+
+pip3 install -e 'git+http://github.com/openai/human-eval#egg=human-eval'
+wget https://github.com/openai/human-eval/raw/master/data/HumanEval.jsonl.gz
+
+time python3 ./human-eval.py -a arch-t5.1.1-prefix_lm-1
+
+# linux
+sed -i 's/^#\([ tab]*exec(check_program, exec_globals)\)/\1/' <path-to-installed-packages>/human_eval/execution.py
+# macOS - apply 'fork' patch
+#patch <path-to-installed-packages>/human_eval/execution.py < human_eval_python_3.8_macos_execution.patch
+
+evaluate_functional_correctness humanEval-arch-t5.1.1-prefix_lm-1k-<checkpoint>.jsonl --problem_file='HumanEval.jsonl.gz'
 ```
 
 ## Export the model
