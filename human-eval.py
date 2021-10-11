@@ -27,7 +27,7 @@ def tf_verbosity_level(level):
 
 def pre_process(s):
     return s.replace("\n", "Ċ")
-    
+
 def post_process(s):
     """TODO(bzz): mimick the rest of the codex logic"""
     def drop_after(txt, s):
@@ -53,7 +53,7 @@ def main(args):
         mesh_devices=['gpu:0'] if gpu else None,
         model_type="lm" if "arch-lm" in args.arch else "bitransformer",
         model_parallelism=1,
-        batch_size=2, # 8 on TPUv2-8?
+        batch_size=args.batch_size,
         sequence_length={"inputs": 512, "targets": 512},
     )
 
@@ -66,7 +66,7 @@ def main(args):
         for i in sorted_problems:
                 f.write(pre_process(problems[i]["prompt"]))
                 f.write("\n")
-        
+
     predict_outputs_path = "predict_outputs.txt"
     with tf_verbosity_level('ERROR'):
         model.predict(
@@ -111,6 +111,10 @@ if __name__ == '__main__':
         '-n', '--num_samples',
         type=int, default=1,
         help="Number of samples")
+    parser.add_argument(
+        '-b', '--batch_size',
+        type=int, default=2, # 8 on TPUv2-8?
+        help="Size of the batch")
     parser.add_argument(
         '-a', '--arch',
         type=str, default="arch-lm_v1-lm",
