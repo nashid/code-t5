@@ -12,9 +12,7 @@ import tensorflow as tf
 #
 # The difference with a library version is this line, where we decode prediction before recording it to a file:
 # decodes = [decoded_output.decode('utf-8') for decoded_output in decodes[:dataset_size]]
-#
-# The function is not '@gin.configurable', 
-# so values of 'input_filename' and 'output_filename' parameters are set explicitly
+@gin.configurable
 def decode_from_file_utf(estimator,
                      vocabulary,
                      model_type,
@@ -70,7 +68,6 @@ def decode_from_file_utf(estimator,
 #
 # The difference with a library version is where we provide a custom decode_from_file function to mtf_utils.infer_model
 # decode_fn=decode_from_file_utf
-# Also GPU argument was added to the constructor
 def _parse_operative_config(model_dir):
   with gin.unlock_config():
     gin.parse_config_file(
@@ -139,8 +136,8 @@ class CustomMtfModel(t5.models.MtfModel):
             gin.bind_parameter("Bitransformer.decode.beam_size", beam_size)
             gin.bind_parameter("Bitransformer.decode.temperature", temperature)
             gin.bind_parameter("Bitransformer.decode.sampling_keep_top_k", keep_top_k)
-            gin.bind_parameter("utils.decode_from_file.input_filename", input_file)
-            gin.bind_parameter("utils.decode_from_file.output_filename", output_file)
+            gin.bind_parameter("mtf_model.decode_from_file_utf.input_filename", input_file)
+            gin.bind_parameter("mtf_model.decode_from_file_utf.output_filename", output_file)
         if vocabulary is None:
             vocabulary = utils.get_vocabulary()
         mtf_utils.infer_model(
