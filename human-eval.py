@@ -67,7 +67,7 @@ def main(args):
                 f.write(pre_process(problems[i]["prompt"]))
                 f.write("\n")
 
-    predict_outputs_path = "predict_outputs.txt"
+    predict_outputs_path = f"predict_outputs-{args.arch}.txt"
     with tf_verbosity_level('ERROR'):
         model.predict(
             checkpoint_steps=-1,
