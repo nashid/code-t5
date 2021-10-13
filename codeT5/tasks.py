@@ -17,8 +17,9 @@ import os
 
 import seqio
 import t5.data
-from t5.data import preprocessors
 import tensorflow as tf
+
+from codeT5.data import preprocessors
 
 TaskRegistry = seqio.TaskRegistry
 
@@ -70,15 +71,6 @@ def py5k_dataset_fn(split, shuffle_files=False):
                 num_parallel_calls=tf.data.experimental.AUTOTUNE)
     return ds
 
-def fl_preprocessor(ds):
-    def _to_inputs_and_targets(ex):
-        return {
-            "inputs": "",
-            "targets": ex,
-        }
-    return ds.map(_to_inputs_and_targets,
-                num_parallel_calls=tf.data.experimental.AUTOTUNE)
-
 
 # FullLine dataset for Prefix language modeling pretraining, as in Raffel et al., 2019.
 TaskRegistry.add(
@@ -88,10 +80,10 @@ TaskRegistry.add(
         num_input_examples={"train": 170000, "validation":40815},
     ),
     preprocessors=[
-        fl_preprocessor,
+        preprocessors.fl_preprocessor,
         seqio.preprocessors.tokenize,
         seqio.CacheDatasetPlaceholder(),
-        preprocessors.unsupervised,
+        t5.data.preprocessors.unsupervised,
         seqio.preprocessors.append_eos_after_trim,
     ],
     metric_fns=[t5.evaluation.metrics.accuracy],
@@ -104,10 +96,10 @@ TaskRegistry.add(
         num_input_examples={"train": 700000, "validation":352596},
     ),
     preprocessors=[
-        fl_preprocessor,
+        preprocessors.fl_preprocessor,
         seqio.preprocessors.tokenize,
         seqio.CacheDatasetPlaceholder(),
-        preprocessors.unsupervised,
+        t5.data.preprocessors.unsupervised,
         seqio.preprocessors.append_eos_after_trim,
     ],
     metric_fns=[t5.evaluation.metrics.accuracy],
@@ -120,10 +112,10 @@ TaskRegistry.add(
         num_input_examples={"train": 1100000, "validation":559698},
     ),
     preprocessors=[
-        fl_preprocessor,
+        preprocessors.fl_preprocessor,
         seqio.preprocessors.tokenize,
         seqio.CacheDatasetPlaceholder(),
-        preprocessors.unsupervised,
+        t5.data.preprocessors.unsupervised,
         seqio.preprocessors.append_eos_after_trim,
     ],
     metric_fns=[t5.evaluation.metrics.accuracy],
@@ -137,10 +129,10 @@ TaskRegistry.add(
         num_input_examples={"train": 5884757, "validation": 1292044},
     ),
     preprocessors=[
-        fl_preprocessor,
+        preprocessors.fl_preprocessor,
         seqio.preprocessors.tokenize,
         seqio.CacheDatasetPlaceholder(),
-        preprocessors.unsupervised,
+        t5.data.preprocessors.unsupervised,
         seqio.preprocessors.append_eos_after_trim,
     ],
     metric_fns=[t5.evaluation.metrics.accuracy],
