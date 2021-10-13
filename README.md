@@ -203,10 +203,29 @@ From 2016 Github dump on [BigQuery public dataset](https://github.com/google-res
 
 To preprocess, do
 ```
-gsutil -m cp gs://t5-codex/data/github_python_minus_ethpy150open_dedup data
+gsutil -m cp gs://t5-codex/data/bq_py_2016_minus_ethpy150/jsonl data
 ls data/py_file_content.jsonl-* | parallel "gzcat {} | go run preprocess_content.go"
-#TODO rename according to slipts
+
+#TODO add renaming, according to splits
 ```
+
+This does not include sha-based deduplication wich, according to BigQuery, will result in 25.5Gb instead of the current 40Gb.
+
+<details>
+
+<summany>SQL query</summary>
+
+```sql
+SELECT
+    sum(size)
+FROM
+(select distinct(sha), size
+ from `data-analytics-experiments.github_python.cubert_python_content`
+ WHERE filepath like '%.py')
+```
+
+
+</details>
 
 
  ### top400k Github DB 2020
