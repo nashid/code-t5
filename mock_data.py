@@ -25,7 +25,7 @@ def has_close_elements(numbers: List[float], threshold: float) -> bool:
 # Generate some predictions
 inputs = [
     "def send_tweet_with_image(",
-    "def validate_date(date: str):\n    \"Validates wheather a string is correctly formatted datetime string in the RFC 3339 format\""
+    "def validate_date(date: str):\n    \"Validates wheather a string is correctly formatted datetime string in the RFC 3339 format\"",
     "public static void ",
     "import ten ",
     "Copyright ",

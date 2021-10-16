@@ -19,10 +19,13 @@ def tf_verbosity_level(level):
 
 def main(args):
   MODEL_DIR=os.path.join(args.models_dir, args.arch) #"gs://t5-codex/models/arch-lm_v1-lm" # "gs://t5-codex/models/base_shared_1k"
+  gpu = tf.test.is_gpu_available()
 
   model = codeT5.models.CustomMtfModel(
       model_dir=MODEL_DIR,
-      tpu=None,
+      tpu=args.tpu if args.tpu else None,
+      mesh_shape="model:1,batch:1" if gpu else None,
+      mesh_devices=['gpu:0'] if gpu else None,
       model_type="lm" if "arch-lm" in args.arch else "bitransformer",
       model_parallelism=1,
       batch_size=2,
@@ -38,7 +41,7 @@ def main(args):
       f.write(i.replace("\n", "Ċ"))
       f.write("\n")
 
-  vocab = seqio.SentencePieceVocabulary("models/py5k-50.model", t5.data.DEFAULT_EXTRA_IDS)
+  vocab = seqio.SentencePieceVocabulary(os.path.join(os.path.dirname(args.models_dir), 'py5k-50.model'), t5.data.DEFAULT_EXTRA_IDS)
   with tf_verbosity_level('ERROR'):
     model.predict(
         checkpoint_steps=-1, #410400,
@@ -48,9 +51,9 @@ def main(args):
         vocabulary=vocab,
     )
 
-  #prediction_files = sorted(tf.io.gfile.glob(predict_outputs_path + "*"))
-  #print("\nPredictions using checkpoint %s:\n" % prediction_files[-1].split("-")[-1])
-  with tf.io.gfile.GFile(predict_outputs_path) as f: #prediction_files[-1]
+  prediction_files = sorted(tf.io.gfile.glob(predict_outputs_path + "*"))
+  print("\nPredictions using temperature {}, checkpoint {}:\n".format(args.temp, prediction_files[-1].split("-")[-1]))
+  with tf.io.gfile.GFile(prediction_files[-1]) as f:
     for i, o in zip(inputs, f):
       if o:
         print(i.replace('Ċ', '\n'))
@@ -74,6 +77,9 @@ if __name__ == '__main__':
         '-m', '--models_dir',
         type=str, default='models', # or 'gs://t5-codex/models'
         help='Path to the dir with sub-directories for individual checkpoints')
+    parser.add_argument(
+        '--tpu', type=str, default="",
+        help="Use TPU with the given address or name")
 
 
     args = parser.parse_args()
