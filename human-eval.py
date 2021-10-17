@@ -74,6 +74,7 @@ def main(args):
             input_file=predict_inputs_path,
             output_file=predict_outputs_path,
             temperature=args.temp,
+            keep_top_k=args.top_k,
         )
 
     # read the output (suffix '-{checkpoint}' was added)
@@ -107,6 +108,10 @@ if __name__ == '__main__':
         '-t', '--temp',
         type=float, default=0.6,
         help="Sampling temperature")
+    parser.add_argument(
+        '--top_k',
+        type=int, default=-1,
+        help="A value [1, vocab_size) used to sample from only the k most likely logits")
     parser.add_argument(
         '-n', '--num_samples',
         type=int, default=1,
