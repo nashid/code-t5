@@ -230,10 +230,11 @@ FROM
 </details>
 
 
- ### top400k Github DB 2020
+ ### top400k GH DB 2020
 
- * Python 21.9GB
- * Files: 3,140,462 uniq
+ * Python ? / 21.9GB
+ * Files: total ? / uniq 3,140,462
+ * Functions: ?, docstring 6,195,401
 
 ## Train the model
 
