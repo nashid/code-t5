@@ -7,3 +7,4 @@ data/jsonl/
 __pycache__
 .DS_Store
 predict_outputs-*
+.idea/
