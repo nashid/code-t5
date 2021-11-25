@@ -21,9 +21,11 @@
 
 ## Datasets
 
-We are using [google/seqio](https://github.com/google/seqio) library as way to feed the data into a model for training, that is based on [tf.data](https://cs230.stanford.edu/blog/datapipeline/) pipeline.
+We are using [google/seqio](https://github.com/google/seqio) library as way to feed the data into a model for training,
+that is based on [tf.data](https://cs230.stanford.edu/blog/datapipeline/) pipeline.
 
-Below are the steps one needs to take to conver existing raw datasets into the intermediate JSONL format and then to a plain-text line-based format supported by the libraty. All that has already beed done for all the Python code in FL-Dataset and thus cached .tfrecords can be used directly for the training.
+Below are the steps one needs to take to convert existing raw dataset into the intermediate JSONL format and then to a plain-text line-based format supported by the library.
+All that has already been done for all the Python code in FL-Dataset and thus cached `.tfrecords` can be used directly for the training.
 
 ### Pre-processing & filtering
 
@@ -38,7 +40,7 @@ When converting program text we:
 
 ### FL-Dataset
 
-Sevral flavors of the 2019 [fl-dataset](https://jetbrains.team/p/ccrm/repositories/fl-dataset/files/docs/README.md).
+Several flavors of the 2019 [fl-dataset](https://jetbrains.team/p/ccrm/repositories/fl-dataset/files/docs/README.md).
 
 #### Python: Top 5k repos >50 stars
 
@@ -57,8 +59,6 @@ Pre-processed
  * [SPE vocabulary](gs://t5-codex/data/py-50stars-top5k-2019/py5k-50.model)
  * [JSONL](gs://t5-codex/data/py-50stars-top5k-2019/py5k-50.tar.xz)
  * [cache in .tfrecord](gs://t5-codex/cache/py_50stars_top5k_2019)
-
-
 
 #### Python: all repos >50 stars
 
@@ -90,7 +90,6 @@ Pre-processed
  * [JSONL](gs://t5-codex/data/py-50stars-2019/py_50stars_2019-uniq.jsonl.xz)
  * [cache in .tfrecord](gs://t5-codex/cache/py_50stars_2019)
 
-
 #### Python: all repos from 10 to 50 stars
 
 Raw repositories: [1](https://5k-dataset.s3.amazonaws.com/v3/dataset-open-50-less-1.tar.gz), [2](https://5k-dataset.s3.amazonaws.com/v3/dataset-open-50-less-2.tar.gz)
@@ -114,18 +113,19 @@ TBD
 
 #### Preprocessing
 
-These steps are the same for all the Fulline datasets. Below are examples for the [Python: Top 5k repos >50 stars](#python-top-5k-repos-50-stars)
+These steps are the same for all the Full-line datasets.
+Below are examples for the [Python: Top 5k repos >50 stars](#python-top-5k-repos-50-stars)
 
-```
+Create virtual environment and install requirements for preprocessing, e.g.:
+```shell
 virtualenv -p python3 .venv
-source .venv/bin/activat
+source .venv/bin/activate
 pip install -r requirements-preprocess.txt
 ```
 
-
 1. Convert dataset to JSONL format
-```
-./convert-fulline-to-jsonl.py --data_dir='data/dataset-normalized-5000-with-imports'
+```shell
+python convert-fulline-to-jsonl.py --data_dir='data/dataset-normalized-5000-with-imports'
 
 pv data/dataset-normalized-5000-with-imports/*.jsonl \
   > data/jsonl/py5k-50.jsonl
@@ -137,9 +137,10 @@ pv data/jsonl/py5k-50.jsonl \
 ```
 
 2. Train SentencePiece vocabulary on full content.
+
 Follow https://github.com/google/sentencepiece#build-and-install-sentencepiece-command-line-tools-from-c-source
 
-```
+```shell
 pv data/jsonl/py5k-50-uniq.jsonl \
   | jq -cr '.content' \
   > data/py5k-50-uniq.txt
@@ -160,29 +161,31 @@ time spm_train \
 ```
 
 3. Generate train/validation splits
-Split should preferable be done by-project, to avoid leakig information between splits.
-By default, files are order by project, so we are "leaking" at most one project.
-```
+
+Split, preferably, should be done by-project, to avoid leaking information between splits.
+By default, files are ordered by project, so we are “leaking“ at most one project.
+
+```shell
 wc -l data/py5k-50-uniq.txt
  210815
 head -n 170000 data/py5k-50-uniq.txt > data/py5k-50.train.txt
 tail -n 40815 data/py5k-50-uniq.txt > data/py5k-50.test.txt
 ```
 
-Split by-file may be generated the same way, just shuffle lines of JSONL before
-```
+Split by-file may be generated the same way, just shuffle lines of JSONL before.
+```shell
 pv py5k-50-uniq.jsonl | perl -MList::Util=shuffle -e 'print shuffle <>;'
 ```
 
-Create 5 shards
-```
+Create 5 shards for train holdout.
+```shell
 split -da 4 -l $((`wc -l < data/py5k-50.train.txt`/5)) data/py5k-50.train.txt data/py5k-50.train.txt- --additional-suffix="-of-0005"
 ```
 
 Change `DATA_DIR` in appropriate Task defined in `tasks.py`.
 
 
-### cuBERT github_python_minus_ethpy150open_dedup
+### CuBERT github_python_minus_ethpy150open_dedup
 
 From 2016 Github dump on [BigQuery public dataset](https://github.com/google-research/google-research/tree/master/cubert#collection-query)
 
@@ -191,8 +194,8 @@ From 2016 Github dump on [BigQuery public dataset](https://github.com/google-res
  * Functions: 29,083,262, docstring 5,525,609
  * (sub-)Tokens:  7,979,952,884 + 1,754,768,276
 
- 1. create a BigQuery table pointing to GCS `gs://cubert/20200621_Python/github_python_minus_ethpy150open_deduplicated_manifest/manifest.jsontxt-*`
- 2. run the query (processing 2.3 Tb)
+ 1. Create a BigQuery table pointing to GCS `gs://cubert/20200621_Python/github_python_minus_ethpy150open_deduplicated_manifest/manifest.jsontxt-*`
+ 2. Run the query (processing 2.3 Tb)
     ```sql
      SELECT content.id as sha, content.content, content.size, meta.filepath, meta. license, meta.repository
      FROM
@@ -201,17 +204,18 @@ From 2016 Github dump on [BigQuery public dataset](https://github.com/google-res
        ON meta.id = content.id
      WHERE content.binary = FALSE
     ```
- 3. save results to another BigQuery table, export to GCS bucket
+ 3. Save results to another BigQuery table, export to GCS bucket
 
 To preprocess, do
-```
+```shell
 gsutil -m cp gs://t5-codex/data/bq_py_2016_minus_ethpy150/jsonl data
 ls data/py_file_content.jsonl-* | parallel "gzcat {} | go run preprocess_content.go"
 
 #TODO add renaming, according to splits
 ```
 
-This does not include sha-based deduplication wich, according to BigQuery, will result in 25.5Gb instead of the current 40Gb.
+This does not include sha-based deduplication.
+Applying it, according to BigQuery, will result in 25.5Gb instead of the default 40Gb.
 
 <details>
 
@@ -230,7 +234,7 @@ FROM
 </details>
 
 
- ### top400k GH DB 2020
+### top400k GH DB 2020
 
  * Python ? / 21.9GB
  * Files: total ? / uniq 3,140,462
@@ -238,19 +242,21 @@ FROM
 
 ## Train the model
 
-```
+To train the model one may create a separate from preprocessing virtual environment.
+
+```shell
 virtualenv -p python3 .venv-train
-source .venv-train/bin/activat
+source .venv-train/bin/activate
 pip install -r requirements-train.txt
 ```
 
-To test LM Task definiton and input pipeline
-```
-python ./print_dataset.py
+To test LM Task definition and input pipeline
+```shell
+python print_dataset.py
 ```
 
-
-```
+Set up an environment configuration with proper values:
+```shell
 export PROJECT=<project-id>
 export ZONE=<zone>
 export TPU_NAME=t5-tpu
@@ -258,18 +264,17 @@ export TPU_SIZE=v2-8
 export BUCKET=gs://t5-codex
 export DATA_DIR="${BUCKET}/data"
 export MODEL_DIR="${BUCKET}/models"
-EXPORT_DIR="${MODEL_DIR}/export"
+export EXPORT_DIR="${MODEL_DIR}/export"
 export TASK_NAME='fl_py_50stars_top5k_2019'
 ```
 
 Create TPU from Cloud VM
-```
-ctpu up --name=$TPU_NAME --project=$PROJECT --zone=$ZONE --tpu-size=$TPU_SIZE \
-        --tpu-only --noconf
+```shell
+ctpu up --name=$TPU_NAME --project=$PROJECT --zone=$ZONE --tpu-size=$TPU_SIZE --tpu-only --noconf
 ```
 
-Train
-```
+Start model training:
+```shell
 python -m t5.models.mesh_transformer_main \
   --tpu="${TPU_NAME}" \
   --gcp_project="${PROJECT}" \
@@ -334,8 +339,9 @@ Cached .tfrecords \w TextLineDataSource:
 </details>
 
 ## Cache the dataset
-To cache the dataset on GCS as .tfrecords:
-```
+
+To cache the dataset on GCS as `.tfrecords`:
+```shell
 gcloud auth application-default login
 pip install apache-beam[gcp] python-snappy
 python -m seqio.scripts.cache_tasks_main \
@@ -346,12 +352,11 @@ python -m seqio.scripts.cache_tasks_main \
  --pipeline_options=["--runner=DirectRunner","--direct_num_workers 10"]
 ```
 
-
 ## Evaluate
 
-Eval on latest checkpoint \w full decoding
+Evaluate model on latest checkpoint \w full decoding
 (27 Min initial padding on un-cached dataset :/)
-```
+```shell
 python -m t5.models.mesh_transformer_main  \
   --tpu="$TPU_ADDRESS" \
   --model_dir="$MODEL_DIR" \
@@ -368,12 +373,11 @@ python -m t5.models.mesh_transformer_main  \
   --gin_param="MIXTURE_NAME = '${TASK_NAME}'" \
   --gin_param="mesh_train_dataset_fn.use_cached = True" \
   --additional_task_cache_dirs='${BUCKET}/cache'
-
 ```
 
 Fast eval only calculating perplexity
 
-```
+```shell
 python -m t5.models.mesh_transformer_main  \
   --tpu="$TPU_ADDRESS" \
   --model_dir="$MODEL_DIR" \
@@ -394,14 +398,20 @@ python -m t5.models.mesh_transformer_main  \
 
 ### HumanEval
 
-How to run HumanEval locally
-```
-./ls_models.py
+List all trained models and choose one:
+```shell
+python ls_models.py
 ./cp_model <arch> <checkpoint>
+```
 
+Download and install HumanEval:
+```shell
 pip3 install -e 'git+http://github.com/openai/human-eval#egg=human-eval'
 wget https://github.com/openai/human-eval/raw/master/data/HumanEval.jsonl.gz
+```
 
+How to run HumanEval locally:
+```shell
 time python3 ./human-eval.py -a arch-t5.1.1-prefix_lm-1
 
 # linux
@@ -414,7 +424,7 @@ evaluate_functional_correctness humanEval-arch-t5.1.1-prefix_lm-1k-<checkpoint>.
 
 ## Export the model
 
-```
+```shell
 python -m t5.models.mesh_transformer_main \
   --gcp_project="$PROJECT" \
   --tpu_zone="$ZONE" \
@@ -435,7 +445,7 @@ python -m t5.models.mesh_transformer_main \
 
 ### TF Serving
 
-```
+```shell
 export MODEL_NAME="<model>"
 export SAVED_MODEL_PATH="/path/to/export"
 
@@ -469,7 +479,7 @@ sudo docker run -d --rm -p 8501:8501 \
 
 Inference for a large model on CPU takes ~1min
 
-```
+```shell
 time curl -d '{"inputs": ["import tensorflow as"]}' \
   -X POST "http://localhost:8501/v1/models/$MODEL_NAME:predict"
 ```
