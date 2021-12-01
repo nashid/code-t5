@@ -22,10 +22,14 @@ import (
 	"strings"
 )
 
-const fieldName = `"sha": "`
+var fieldName = `"sha":"`
 
 // Filters STDIN leaving only JSONL \w a uniq "sha" field
 func main() {
+	if len(os.Args) == 2 {
+		fieldName = os.Args[1]
+	}
+
 	uniq := map[string]int{}
 
 	scanner := bufio.NewScanner(os.Stdin)
@@ -33,6 +37,11 @@ func main() {
 	scanner.Buffer(buf, 2*1024*1024)
 	for scanner.Scan() {
 		line := scanner.Text()
+
+		//TODO(bzz): skip big files
+		// if "size" > 1Mb {
+		// 	continue
+		// }
 
 		s := strings.Index(line, fieldName)
 		sha := line[s : s+65]
