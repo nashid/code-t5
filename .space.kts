@@ -1,5 +1,5 @@
 job("Code quality") {
-    container(image="ubuntu") {
+    container(image="python:3.9") {
         shellScript {
             interpreter = "/bin/bash"
             content = """
