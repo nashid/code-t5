@@ -27,3 +27,8 @@ MixtureRegistry.add(
     "fl_bq_py_mix", # 11.6B tokens of Python at FullLine and Github BigQuery datasets
     ["bq_py_2016_minus_ethpy150", "fl_py_50stars_2019", "fl_py_10stars_2019"],
     default_rate=t5.data.rate_num_examples)
+
+MixtureRegistry.add(
+    "bq_at_py_mix", # ?B tokens of Python at Github BigQuery and Anthena datasets
+    ["bq_py_2016_dedup", "at_py_2020"],
+    default_rate=t5.data.rate_num_examples)

@@ -59,6 +59,23 @@ bq_py_2016_minus_ethpy150_paths = {
     "validation": os.path.join(DATA_DIR, "bq_py_2016_minus_ethpy150", "github_py_minus_ethpy150.validation.*.txt")
 }
 
+bq_py_2016_dedup_paths = {
+    "train": os.path.join(DATA_DIR, "bq_py_2016_dedup", "txt", "gh_py.train.*.txt.gz"),
+    "validation": os.path.join(DATA_DIR, "bq_py_2016_dedup", "txt", "gh_py.valid.txt.gz")
+}
+
+# Theoretically, there is https://www.tensorflow.org/io/api_docs/python/tfio/experimental/serialization/decode_json
+# it could be interesting to add such a preprocessor, coupled with tf.strings.regex_replace(, "\n", "Ċ")
+# and compare the pipeline performance.
+# at_py_2020_jsonl = {
+#     "train": os.path.join(DATA_DIR, "at_py_2020", "jsonl", "20211130_085041_00017_*.train.gz"),
+#     "validation": os.path.join(DATA_DIR, "at_py_2020", "jsonl", "20211130_085041_00017_*.valid.gz")
+#}
+
+at_py_2020_txt = {
+    "train": os.path.join(DATA_DIR, "at_py_2020", "txt", "at_py.train.*.txt.gz"),
+    "validation": os.path.join(DATA_DIR, "at_py_2020", "txt", "at_py.valid.txt.gz")
+}
 
 
 def py5k_dataset_fn(split, shuffle_files=False):
@@ -127,6 +144,40 @@ TaskRegistry.add(
     source=seqio.TextLineDataSource(
         split_to_filepattern=bq_py_2016_minus_ethpy150_paths,
         num_input_examples={"train": 5884757, "validation": 1292044},
+    ),
+    preprocessors=[
+        preprocessors.fl_preprocessor,
+        seqio.preprocessors.tokenize,
+        seqio.CacheDatasetPlaceholder(),
+        t5.data.preprocessors.unsupervised,
+        seqio.preprocessors.append_eos_after_trim,
+    ],
+    metric_fns=[t5.evaluation.metrics.accuracy],
+    output_features=DEFAULT_OUTPUT_FEATURES)
+
+# BigQuery Github re-splited and de-duplicated
+TaskRegistry.add(
+    "bq_py_2016_dedup",
+    source=seqio.TextLineDataSource(
+        split_to_filepattern=bq_py_2016_dedup_paths,
+        num_input_examples={"train": 3800000, "validation": 20448},
+    ),
+    preprocessors=[
+        preprocessors.fl_preprocessor,
+        seqio.preprocessors.tokenize,
+        seqio.CacheDatasetPlaceholder(),
+        t5.data.preprocessors.unsupervised,
+        seqio.preprocessors.append_eos_after_trim,
+    ],
+    metric_fns=[t5.evaluation.metrics.accuracy],
+    output_features=DEFAULT_OUTPUT_FEATURES)
+
+# Athena Github dataset
+TaskRegistry.add(
+    "at_py_2020", # at_java_2020 is coming...
+    source=seqio.TextLineDataSource(
+        split_to_filepattern=at_py_2020_txt,
+        num_input_examples={"train": 3788418, "validation": 10373},
     ),
     preprocessors=[
         preprocessors.fl_preprocessor,
