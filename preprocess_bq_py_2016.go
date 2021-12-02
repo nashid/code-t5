@@ -33,23 +33,25 @@ import (
 
 var (
 	hashOnlyFlag = flag.Bool("h", false, "output hash only")
+	dupShaFlag   = flag.String("d", "", "file with SHA1 per-line (to filter out)")
+	outputFile   = "gh_py_minus_ethpy150.*.txt"
 
-	outputFile         = "gh_py_minus_ethpy150.*.txt"
+	duplicates         map[string]bool
 	newlineReplacement = []byte("Ċ") // \n + 100 == \u0100a  # printf '\u010a\n' | hexdump -C
 )
 
-var usageMessage = `usage: go run preprocess_bq_py_2020.go [-h] dir
+var usageMessage = `usage: go run preprocess_bq_py_2020.go [-h] [-d] dir
 
-Reads JSONL from STDIN and saves pre-processed and de-duplicated by SHA content in a file in dir.
+Reads JSONL from STDIN and saves pre-processed content in a file in dir.
+ -d excludes SHAs from a given file.
 `
 
 type FileContent struct {
-	Org      string `json:"owner"`
-	Repo     string `json:"name"`
+	OrgRepo  string `json:"repository"`
 	License  string `json:"license"`
-	Filepath string `json:"path"`
-	Size     int32  `json:"size"`
-	Sha      string `json:"content_sha"`
+	Filepath string `json:"filepath"`
+	Size     string `json:"size"`
+	Sha      string `json:"sha"`
 	Content  string `json:"content"`
 }
 
@@ -66,7 +68,9 @@ func main() {
 	dir := args[0]
 
 	//Read SHAs of "duplicates" - files from other datasets
-	duplicates := readShaFrom("duplicate_sha.txt")
+	if *dupShaFlag != "" {
+		duplicates = readShaFrom(*dupShaFlag)
+	}
 
 	f, err := os.CreateTemp(dir, outputFile)
 	check(err)

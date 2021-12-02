@@ -53,11 +53,11 @@ type FileContent struct {
 }
 
 //Reads JSONL from STDIN, extracts it's SHA1
-// ls jsonl/20211130_*.gz | parallel "gzcat {} | go run preprocess_at_py_2020.go -h"
-// cat data/athena_py.*.txt > at_py_2020_sha.txt
+// ls jsonl/20211130_*.gz | parallel "zcat {} | go run preprocess_at_py_2020.go -h txt"
+// cat txt/athena_py.*.txt | sort | uniq > at_py_2020_sha.txt
 
 //Save content in line-based text format
-// ls jsonl/20211130_*.gz | parallel "gzcat {} | go run preprocess_bq_py_2016.go txt"
+// ls jsonl/20211130_*.gz | parallel "zcat {} | go run preprocess_bq_py_2016.go txt"
 
 func main() {
 	flag.Usage = usage

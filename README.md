@@ -189,7 +189,7 @@ Change `DATA_DIR` in appropriate Task defined in `tasks.py`.
 
 From 2016 Github dump on [BigQuery public dataset](https://github.com/google-research/google-research/tree/master/cubert#collection-query)
 
- * Python: 42Gb / 26Gb
+ * Python: 32Gb(compressed 7Gb) / 22Gb
  * Files: total 7,176,801 / uniq 3,820,448
  * Functions: 29,083,262, docstring 5,525,609
  * (sub-)Tokens:  7,979,952,884 + 1,754,768,276
@@ -209,10 +209,36 @@ From 2016 Github dump on [BigQuery public dataset](https://github.com/google-res
 To preprocess, do
 ```shell
 gsutil -m cp -r gs://t5-codex/data/bq_py_2016_minus_ethpy150/jsonl/ bq_py_2016
+cd bq_py_2016
 
 # list all SHAs
-ls bq_py_2016/py_file_content.jsonl-* | parallel "gzcat {} | go run preprocess_gh_py_2020.go -h"
-cat bq_py_2016/gh_py_minus_ethpy150.*.txt > gh_py_2016_sha.txt
+ls jsonl/py_file_content.jsonl-* | parallel "zcat {} | go run preprocess_bq_py_2016.go -h bq_py_2016"
+cat gh_py_minus_ethpy150*.txt | sort | uniq > bq_py_2016_sha.txt
+
+# de-duplicate
+ls jsonl/* | xargs zcat > full.jsonl
+pv full.jsonl | go run filter_dup_sha.go > uniq.json
+
+# split train/test (by file)
+head -n 3800000 uniq.jsonl > train.jsonl
+tail -n 20448 uniq.jsonl > test.jsonl
+# TODO(bzz) split by-project
+
+# shard train
+split -da 4 -l $((`wc -l < train.jsonl`/40)) train.jsonl train.jsonl- --additional-suffix="-of-0040"
+
+mkdir txt
+# pre-process, filtering out all SHAs from at_py_2020
+ls train.jsonl-* | parallel "cat {} | go run preprocess_bq_py_2016.go -d ../at_py_2020/at_py_2020_sha.txt txt"
+
+rename gh_py_minus_ethpy150 gh_py_2016_dedup.train gh_py_minus_ethpy150.*.txt
+wc -l *.train.*
+
+cat test.jsonl | go run preprocess_bq_py_2016.go -d ../at_py_2020/at_py_2020_sha.txt txt
+
+rename gh_py_minus_ethpy150 gh_py_2016_dedup.test gh_py_minus_ethpy150.*.txt
+wc -l *.test.*
+
 
 #TODO add file renaming, according to splits
 ```
@@ -238,9 +264,9 @@ FROM
 
 ### top400k GH DB 2020
 
- * Python ? / 21.9GB (6Gb compressed)
- * Files: total ? / uniq 3,140,462
- * Functions: ?, docstring 6,195,401
+ * Python ? / 20GB? (6.4Gb compressed)
+ * Files: total ? / uniq 3,798,791
+ * Functions: ?, ? docstring (was 6,195,401)
 
  
 To pre-process
