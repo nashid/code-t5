@@ -19,11 +19,10 @@ package main
 
 import (
 	"bufio"
+	"crypto/sha1"
+	"encoding/json"
 	"flag"
 	"fmt"
-
-	// "crypto/md5"
-	"encoding/json"
 	"io"
 	"log"
 	"os"
@@ -71,7 +70,7 @@ func main() {
 	f, err := os.CreateTemp(dir, outputFile)
 	check(err)
 
-	// h := md5.New()
+	h := sha1.New()
 	d := json.NewDecoder(os.Stdin)
 	buf := make([]byte, 0, 64*1024)
 	for {
@@ -84,12 +83,12 @@ func main() {
 
 		// SHA1
 		if *hashOnlyFlag {
-			// to compute MD5
-			//io.WriteString(h, m.Content)
-			//fmt.Sprintf("%x\n", h.Sum(nil))
+			// We can not do that, as it has SHA256 instead :(
+			// f.WriteString(m.Sha)
 
-			f.WriteString(m.Sha)
-			f.WriteString("\n")
+			// compute SHA1
+			io.WriteString(h, m.Content)
+			f.WriteString(fmt.Sprintf("%x\n", h.Sum(nil)))
 			continue
 		}
 
