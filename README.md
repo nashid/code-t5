@@ -474,6 +474,29 @@ python -m seqio.scripts.cache_tasks_main \
  --pipeline_options=["--runner=DirectRunner","--direct_num_workers 10"]
 ```
 
+## Inference
+
+List all trained models:
+```shell
+./ls_models.py
+```
+
+To try different sampling temperatures on examples from `./mock-data.py` using Mesh-Tensorflow API
+```sh
+./mtf_model_inference.sh arch-t5.1.1.small-prefix_lm-1k
+```
+
+For inference using a wrapper around HuggingFace PyTorch that uses tf.data, run:
+``sh
+./hf_model_inference.py arch-t5.1.1.small-prefix_lm-1k-dedup
+``
+
+For pure HuggingFace PyTorch example (\w `transformers.T5Tokenizer`, etc), use:
+```sh
+TBD
+```
+
+
 ## Evaluate
 
 Evaluate model on latest checkpoint \w full decoding
@@ -543,6 +566,8 @@ sed -i 's/^#\([ tab]*exec(check_program, exec_globals)\)/\1/' <path-to-installed
 
 evaluate_functional_correctness humanEval-arch-t5.1.1-prefix_lm-1k-<checkpoint>.jsonl --problem_file='HumanEval.jsonl.gz'
 ```
+
+Evaluation results are very sencitive to several hyperparameters, like sampling temperature and top_k (tokens to consider at ever step) so provide them as CLI args of the `human-eval.py`.
 
 ## Export the model
 
