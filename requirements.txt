@@ -3,3 +3,4 @@ tqdm~=4.62.3
 seqio~=0.0.7
 t5~=0.9.3
 gin-config~=0.4.0
+tensorflow-gcs-config==2.6.0

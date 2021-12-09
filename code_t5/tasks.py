@@ -19,9 +19,8 @@ from typing import Dict
 import seqio
 import t5.data
 
+from code_t5.constants import VOCAB_PATH
 from code_t5.data import preprocessors
-
-_DEFAULT_VOCAB_PATH = "py5k-50.model"
 
 
 def create_output_features(vocab: seqio.SentencePieceVocabulary) -> Dict[str, seqio.Feature]:
@@ -56,7 +55,7 @@ def register_fl_py_top5k(data_dir: str):
         "train": join(data_dir, "fl_py_50stars_top5k_2019", "py5k-50.train.txt-*"),
         "validation": join(data_dir, "fl_py_50stars_top5k_2019", "py5k-50.test.txt"),
     }
-    vocab = seqio.SentencePieceVocabulary(join(data_dir, _DEFAULT_VOCAB_PATH), t5.data.DEFAULT_EXTRA_IDS)
+    vocab = seqio.SentencePieceVocabulary(join(data_dir, VOCAB_PATH), t5.data.DEFAULT_EXTRA_IDS)
     register_task(
         "fl_py_50stars_top5k_2019", paths, {"train": 170000, "validation": 40815}, create_output_features(vocab)
     )
@@ -67,7 +66,7 @@ def register_fl_py_50_stars(data_dir: str):
         "train": join(data_dir, "fl_py_50stars_2019", "py_50stars_2019.train.txt-*"),
         "validation": join(data_dir, "fl_py_50stars_2019", "py_50stars_2019.test.txt-*"),
     }
-    vocab = seqio.SentencePieceVocabulary(join(data_dir, _DEFAULT_VOCAB_PATH), t5.data.DEFAULT_EXTRA_IDS)
+    vocab = seqio.SentencePieceVocabulary(join(data_dir, VOCAB_PATH), t5.data.DEFAULT_EXTRA_IDS)
     register_task("fl_py_50stars_2019", paths, {"train": 700000, "validation": 352596}, create_output_features(vocab))
 
 
@@ -76,7 +75,7 @@ def register_fl_py_10_stars(data_dir: str):
         "train": join(data_dir, "fl_py_10stars_2019", "py_10stars_2019.train.txt-*"),
         "validation": join(data_dir, "fl_py_10stars_2019", "py_10stars_2019.test.txt-*"),
     }
-    vocab = seqio.SentencePieceVocabulary(join(data_dir, _DEFAULT_VOCAB_PATH), t5.data.DEFAULT_EXTRA_IDS)
+    vocab = seqio.SentencePieceVocabulary(join(data_dir, VOCAB_PATH), t5.data.DEFAULT_EXTRA_IDS)
     register_task("fl_py_10stars_2019", paths, {"train": 1100000, "validation": 559698}, create_output_features(vocab))
 
 
@@ -86,10 +85,30 @@ def register_bq_py_2016_minus_ethpy150(data_dir: str):
         "train": join(data_dir, "bq_py_2016_minus_ethpy150", "github_py_minus_ethpy150.train.*.txt"),
         "validation": join(data_dir, "bq_py_2016_minus_ethpy150", "github_py_minus_ethpy150.validation.*.txt"),
     }
-    vocab = seqio.SentencePieceVocabulary(join(data_dir, _DEFAULT_VOCAB_PATH), t5.data.DEFAULT_EXTRA_IDS)
+    vocab = seqio.SentencePieceVocabulary(join(data_dir, VOCAB_PATH), t5.data.DEFAULT_EXTRA_IDS)
     register_task(
         "bq_py_2016_minus_ethpy150", paths, {"train": 5884757, "validation": 1292044}, create_output_features(vocab)
     )
+
+
+# BigQuery Github re-splited and de-duplicated
+def register_bq_py_2016_dedup(data_dir: str):
+    paths = {
+        "train": join(data_dir, "bq_py_2016_dedup", "txt", "gh_py.train.*.txt.gz"),
+        "validation": join(data_dir, "bq_py_2016_dedup", "txt", "gh_py.valid.txt.gz"),
+    }
+    vocab = seqio.SentencePieceVocabulary(join(data_dir, VOCAB_PATH), t5.data.DEFAULT_EXTRA_IDS)
+    register_task("bq_py_2016_dedup", paths, {"train": 3800000, "validation": 20448}, create_output_features(vocab))
+
+
+# Athena Github dataset
+def register_at_py_2020(data_dir: str):
+    paths = {
+        "train": join(data_dir, "at_py_2020", "txt", "at_py.train.*.txt.gz"),
+        "validation": join(data_dir, "at_py_2020", "txt", "at_py.valid.txt.gz"),
+    }
+    vocab = seqio.SentencePieceVocabulary(join(data_dir, VOCAB_PATH), t5.data.DEFAULT_EXTRA_IDS)
+    register_task("at_py_2020", paths, {"train": 3788418, "validation": 10373}, create_output_features(vocab))
 
 
 # Test task
@@ -107,5 +126,7 @@ def register_all_known_tasks(data_dir: str = "gs://t5-codex/data", with_test: bo
     register_fl_py_50_stars(data_dir)
     register_fl_py_10_stars(data_dir)
     register_bq_py_2016_minus_ethpy150(data_dir)
+    register_bq_py_2016_dedup(data_dir)
+    register_at_py_2020(data_dir)
     if with_test:
         register_test_task(data_dir)
