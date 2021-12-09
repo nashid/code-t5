@@ -13,17 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import seqio
 import t5.data
+from seqio import MixtureRegistry
 
-MixtureRegistry = seqio.MixtureRegistry
 
-MixtureRegistry.add(
-    "fl_py_2019_mix", # 3.6B tokes of Python in repos \w >10 stars at FullLine dataset
-    ["fl_py_50stars_2019", "fl_py_10stars_2019"],
-    default_rate=t5.data.rate_num_examples)
+def create_fl_mixture():
+    MixtureRegistry.add(
+        "fl_py_2019_mix",  # 3.6B tokes of Python in repos \w >10 stars at FullLine dataset
+        ["fl_py_50stars_2019", "fl_py_10stars_2019"],
+        default_rate=t5.data.rate_num_examples,
+    )
 
-MixtureRegistry.add(
-    "fl_bq_py_mix", # 11.6B tokens of Python at FullLine and Github BigQuery datasets
-    ["bq_py_2016_minus_ethpy150", "fl_py_50stars_2019", "fl_py_10stars_2019"],
-    default_rate=t5.data.rate_num_examples)
+
+def create_bq_fl_mixture():
+    MixtureRegistry.add(
+        "fl_bq_py_mix",  # 11.6B tokens of Python at FullLine and Github BigQuery datasets
+        ["bq_py_2016_minus_ethpy150", "fl_py_50stars_2019", "fl_py_10stars_2019"],
+        default_rate=t5.data.rate_num_examples,
+    )

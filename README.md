@@ -114,76 +114,75 @@ TBD
 #### Preprocessing
 
 These steps are the same for all the Full-line datasets.
-Below are examples for the [Python: Top 5k repos >50 stars](#python-top-5k-repos-50-stars)
+Use `pip install tqdm sentencepiece` to install all necessary for preprocessing packages.
+Building `SentencePiece` from sources would increase speed performance,
+refer to [original documentation](https://github.com/google/sentencepiece#build-and-install-sentencepiece-command-line-tools-from-c-source).
 
-Create virtual environment and install requirements for preprocessing, e.g.:
+Below, preprocessing example for the [Python: Top 5k repos >50 stars](#python-top-5k-repos-50-stars) dataset.
+1. Convert dataset to JSONL format, combine into a single one file, and remove duplicates.
 ```shell
-virtualenv -p python3 .venv
-source .venv/bin/activate
-pip install -r requirements-preprocess.txt
-```
+python -m scripts.convert-fulline-to-jsonl \
+  --data_dir data/dataset-normalized-5000-with-imports
+  --output_dir data/py5k-50/jsonl
 
-1. Convert dataset to JSONL format
-```shell
-python convert-fulline-to-jsonl.py --data_dir='data/dataset-normalized-5000-with-imports'
-
-pv data/dataset-normalized-5000-with-imports/*.jsonl \
-  > data/jsonl/py5k-50.jsonl
+pv data/py5k-50/jsonl/*.jsonl > data/py5k-50/jsonl/all_repos.jsonl
 
 # remove duplicated files by sha
-pv data/jsonl/py5k-50.jsonl \
-  | go run filter_dup_sha.go \
-  > data/jsonl/py5k-50-uniq.jsonl
+pv data/py5k-50/jsonl/all_repos.jsonl \
+  | go run scripts/filter_dup_sha.go \
+  > data/py5k-50/jsonl/all_repos_unique.jsonl
 ```
 
 2. Train SentencePiece vocabulary on full content.
 
-Follow https://github.com/google/sentencepiece#build-and-install-sentencepiece-command-line-tools-from-c-source
-
 ```shell
-pv data/jsonl/py5k-50-uniq.jsonl \
+pv data/py5k-50/jsonl/all_repos_unique.jsonl \
   | jq -cr '.content' \
-  > data/py5k-50-uniq.txt
+  > data/py5k-50/py5k-50-uniq.txt
 
 # there is no need to do it, but in case you want to recover newlines do
-head data/py5k-50-uniq-content.txt | sed 's/Ċ/\
+head data/py5k-50/py5k-50-uniq.txt | sed 's/Ċ/\
 /g'
 
-# takes ~10min and 31Gb RAM on 96-core machine
-time spm_train \
-    --allow_whitespace_only_pieces \
-    --noremove_extra_whitespaces \
-    --pad_id=0 --eos_id=1 --unk_id=2 --bos_id=-1 \
-    --num_threads=96 \
-    --vocab_size=32000 \
-    --model_prefix=py5k-50 \
-    --input=data/py5k-50-uniq.txt
+# takes ~10min for Top 5k repos >50 stars dataset on 96-core machine with 31Gb of RAM.
+cd $OUTPUT_DIR && \
+    time spm_train \
+        --allow_whitespace_only_pieces \
+        --remove_extra_whitespaces=false \
+        --pad_id=0 --eos_id=1 --unk_id=2 --bos_id=-1 \
+        --num_threads=96 \
+        --vocab_size=32000 \
+        --model_prefix=data/py5k-50 \
+        --input=py5k-50-uniq.txt
 ```
 
-3. Generate train/validation splits
+3. Generate training and testing splits.
 
 Split, preferably, should be done by-project, to avoid leaking information between splits.
 By default, files are ordered by project, so we are “leaking“ at most one project.
 
+Numbers presented in this script from Top 5k repos >50 stars dataset.
 ```shell
-wc -l data/py5k-50-uniq.txt
+wc -l data/py5k-50/py5k-50-uniq.txt
  210815
-head -n 170000 data/py5k-50-uniq.txt > data/py5k-50.train.txt
-tail -n 40815 data/py5k-50-uniq.txt > data/py5k-50.test.txt
+head -n 170000  data/py5k-50/py5k-50-uniq.txt > data/python_top_5k/py5k-50-uniq.train.txt
+tail -n 40815  data/py5k-50/py5k-50-uniq.txt >  data/python_top_5k/py5k-50-uniq.test.txt
 ```
 
 Split by-file may be generated the same way, just shuffle lines of JSONL before.
 ```shell
-pv py5k-50-uniq.jsonl | perl -MList::Util=shuffle -e 'print shuffle <>;'
+pv data/python_top_5k/jsonl/all_repo_unique.jsonl \
+  | perl -MList::Util=shuffle -e 'print shuffle <>;'
 ```
 
-Create 5 shards for train holdout.
+Create 5 shards for train holdout (use `gsplit` on macOS).
 ```shell
-split -da 4 -l $((`wc -l < data/py5k-50.train.txt`/5)) data/py5k-50.train.txt data/py5k-50.train.txt- --additional-suffix="-of-0005"
+split -da 4 \
+  -l $((`wc -l < data/python_top_5k/py5k-50-uniq.train.txt`/5)) \
+  data/python_top_5k/py5k-50-uniq.train.txt \
+  data/python_top_5k/py5k-50-uniq.train.txt- \
+  --additional-suffix="-of-0005"
 ```
-
-Change `DATA_DIR` in appropriate Task defined in `tasks.py`.
-
 
 ### CuBERT github_python_minus_ethpy150open_dedup
 
@@ -247,12 +246,12 @@ To train the model one may create a separate from preprocessing virtual environm
 ```shell
 virtualenv -p python3 .venv-train
 source .venv-train/bin/activate
-pip install -r requirements-train.txt
+pip install -r requirements.txt
 ```
 
 To test LM Task definition and input pipeline
 ```shell
-python print_dataset.py
+python -m scripts.print_dataset
 ```
 
 Set up an environment configuration with proper values:
@@ -281,8 +280,8 @@ python -m t5.models.mesh_transformer_main \
   --tpu_zone="${ZONE}" \
   --model_dir="${MODEL_DIR}" \
   --t5_tfds_data_dir="${DATA_DIR}" \
-  --module_import="codeT5" \
-  --gin_location_prefix="codeT5/gin/" \
+  --module_import="code_t5" \
+  --gin_location_prefix="gin_configs/" \
   --gin_file="models/shared-prefix_lm.gin" \
   --gin_param="utils.tpu_mesh_shape.model_parallelism = 1" \
   --gin_param="utils.tpu_mesh_shape.tpu_topology = '${TPU_SIZE}'" \
@@ -338,6 +337,12 @@ Cached .tfrecords \w TextLineDataSource:
 
 </details>
 
+List all trained models and download one of them:
+```shell
+python -m scripts.ls_models
+./cp_model $MODEL_NAME $CHECKPOINT
+```
+
 ## Cache the dataset
 
 To cache the dataset on GCS as `.tfrecords`:
@@ -345,7 +350,7 @@ To cache the dataset on GCS as `.tfrecords`:
 gcloud auth application-default login
 pip install apache-beam[gcp] python-snappy
 python -m seqio.scripts.cache_tasks_main \
- --module_import="codeT5.tasks" \
+ --module_import="code_t5.tasks" \
  --tasks="${TASK_NAME}" \
  --output_cache_dir="${BUCKET}/cache" \
  --alsologtostderr \
@@ -361,8 +366,8 @@ python -m t5.models.mesh_transformer_main  \
   --tpu="$TPU_ADDRESS" \
   --model_dir="$MODEL_DIR" \
   --t5_tfds_data_dir="$DATA_DIR" \
-  --module_import="codeT5" \
-  --gin_location_prefix="codeT5/gin/" \
+  --module_import="code_t5" \
+  --gin_location_prefix="gin_configs/" \
   --gin_file="models/shared-prefix_lm.gin" \
   --gin_file="eval.gin" \
   --gin_file="sample_decode.gin" \
@@ -382,8 +387,8 @@ python -m t5.models.mesh_transformer_main  \
   --tpu="$TPU_ADDRESS" \
   --model_dir="$MODEL_DIR" \
   --t5_tfds_data_dir="$DATA_DIR" \
-  --module_import="codeT5" \
-  --gin_location_prefix="codeT5/gin/" \
+  --module_import="code_t5" \
+  --gin_location_prefix="gin_configs/" \
   --gin_file="models/shared-prefix_lm.gin" \
   --gin_file="perplexity_eval.gin" \
   --gin_file="sample_decode.gin" \
@@ -398,24 +403,18 @@ python -m t5.models.mesh_transformer_main  \
 
 ### HumanEval
 
-List all trained models and choose one:
-```shell
-python ls_models.py
-./cp_model <arch> <checkpoint>
-```
-
 Download and install HumanEval:
 ```shell
-pip3 install -e 'git+http://github.com/openai/human-eval#egg=human-eval'
+pip3 install -e "git+http://github.com/openai/human-eval#egg=human-eval"
 wget https://github.com/openai/human-eval/raw/master/data/HumanEval.jsonl.gz
 ```
 
 How to run HumanEval locally:
 ```shell
-time python3 ./human-eval.py -a arch-t5.1.1-prefix_lm-1
+time python -m scripts.human-eval -a $ARCH_NAME
 
 # linux
-sed -i 's/^#\([ tab]*exec(check_program, exec_globals)\)/\1/' <path-to-installed-packages>/human_eval/execution.py
+sed -i 's/^#\([ tab]*exec(check_program, exec_globals)\)/\1/' $HUMAN_EVAL_INSTALLATION_PATH/human_eval/execution.py
 # macOS - apply 'fork' patch
 #patch <path-to-installed-packages>/human_eval/execution.py < human_eval_python_3.8_macos_execution.patch
 
@@ -429,7 +428,7 @@ python -m t5.models.mesh_transformer_main \
   --gcp_project="$PROJECT" \
   --tpu_zone="$ZONE" \
   --model_dir="$MODEL_DIR" \
-  --module_import="codeT5" \
+  --module_import="code_t5" \
   --use_model_api \
   --temperature=0.5 \
   --keep_top_k=-1 \
