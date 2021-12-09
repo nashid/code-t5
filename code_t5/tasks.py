@@ -114,8 +114,8 @@ def register_at_py_2020(data_dir: str):
 # Test task
 def register_test_task(data_dir: str):
     paths = {
-        "train": join(data_dir, "dataset-test", "train.txt-*"),
-        "validation": join(data_dir, "dataset-test", "test.txt"),
+        "train": join(data_dir, "dataset-dev", "train.txt-*"),
+        "validation": join(data_dir, "dataset-dev", "test.txt"),
     }
     vocab = seqio.SentencePieceVocabulary(join(data_dir, "dataset-test", "test.model"), t5.data.DEFAULT_EXTRA_IDS)
     register_task("test", paths, {"train": 8000, "validation": 412}, create_output_features(vocab))
