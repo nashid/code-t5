@@ -61,7 +61,7 @@ def main(args):
                           sequence_length={
                               "inputs": args.inputs,
                               "targets": args.targets
-                          }, use_cached= True if args.cache_dir else False)
+                          }, use_cached=args.cache)
     print(f"\nsequence_length = {{'inputs': {args.inputs}, 'targets': {args.targets}}}")
     print(f"Printing {args.limit} of {task.source.num_input_examples(args.split)} examples from '{args.split}'")
     for ex in tfds.as_numpy(ds.take(args.limit)):
@@ -93,6 +93,10 @@ if __name__ == '__main__':
     parser.add_argument(
         '--targets', type=int, default=128,
         help="length of the Targets")
+    parser.add_argument(
+        '-c', '--cache',
+        type=bool, default=False,
+        help="Use preprocessed cache")
     parser.add_argument(
         '--cache_dir', type=str, default="gs://t5-codex/cache",
         help="Path to the preprocessed dataset cache")

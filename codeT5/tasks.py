@@ -20,6 +20,7 @@ import t5.data
 import tensorflow as tf
 
 from codeT5.data import preprocessors
+from codeT5.data.dataset_providers import GzTextLineDataSource
 
 TaskRegistry = seqio.TaskRegistry
 
@@ -158,7 +159,7 @@ TaskRegistry.add(
 # BigQuery Github re-splited and de-duplicated
 TaskRegistry.add(
     "bq_py_2016_dedup",
-    source=seqio.TextLineDataSource(
+    source=GzTextLineDataSource(
         split_to_filepattern=bq_py_2016_dedup_paths,
         num_input_examples={"train": 3800000, "validation": 20448},
     ),
@@ -175,7 +176,7 @@ TaskRegistry.add(
 # Athena Github dataset
 TaskRegistry.add(
     "at_py_2020", # at_java_2020 is coming...
-    source=seqio.TextLineDataSource(
+    source=GzTextLineDataSource(
         split_to_filepattern=at_py_2020_txt,
         num_input_examples={"train": 3788418, "validation": 10373},
     ),
