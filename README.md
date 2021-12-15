@@ -271,6 +271,7 @@ FROM
  * Python ? / 20GB? (6.4Gb compressed)
  * Files: total ? / uniq 3,798,791
  * Functions: ?, ? docstring (was 6,195,401)
+ * (sub-)Tokens:  7,941,887,907 + 20,812,509
 
  
 To pre-process
