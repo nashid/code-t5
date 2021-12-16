@@ -462,7 +462,7 @@ Cached .tfrecords \w TextLineDataSource:
 List all trained models and download one of them:
 ```shell
 python -m scripts.ls_models
-./cp_model $MODEL_NAME $CHECKPOINT
+./scripts/cp_model $MODEL_NAME $CHECKPOINT
 ```
 
 ## Cache the dataset
@@ -483,11 +483,11 @@ python -m seqio.scripts.cache_tasks_main \
 
 List all trained models:
 ```shell
-./scipts/ls_models.py
+python -m scripts.ls_models
 ```
 
 To try different sampling temperatures on examples from
-[`mock-data.py`](./test/resources/mock_data.py)
+[`mock-data.py`](code_t5/test/resources/mock_data.py)
 using Mesh-Tensorflow API
 ```sh
 ./scripts/mtf_model_inference.sh arch-t5.1.1.small-prefix_lm-1k

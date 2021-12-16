@@ -1,3 +1,5 @@
+from code_t5.constants import NEWLINE
+
 bubble_sort = """from typing import List
 
 def bubble_sort(numbers: List[int]):
@@ -9,7 +11,7 @@ def bubble_sort(numbers: List[int]):
     [1.0, 2.0, 3.0]
     \"\"\"
 """.replace(
-    "\n", "Ċ"
+    "\n", NEWLINE
 )
 
 has_close = """from typing import List
@@ -23,17 +25,21 @@ def has_close_elements(numbers: List[float], threshold: float) -> bool:
     True
     \"\"\"
 """.replace(
-    "\n", "Ċ"
+    "\n", NEWLINE
 )
+
+validate_date = """def validate_date(date: str):
+    "Validates wheather a string is correctly formatted datetime string in the RFC 3339 format"
+"""
 
 # Generate some predictions
 inputs = [
     "def send_tweet_with_image(",
-    'def validate_date(date: str):\n    "Validates wheather a string is correctly formatted datetime string in the RFC 3339 format"',
     "public static void ",
     "import ten ",
     "Copyright ",
     "open a file 'f.txt' in write mode ",
+    validate_date,
     bubble_sort,
     has_close,
 ]

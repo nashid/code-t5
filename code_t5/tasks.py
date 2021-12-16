@@ -38,7 +38,7 @@ def register_task(
         name,
         source=seqio.TextLineDataSource(split_to_filepattern=paths, num_input_examples=num_input_examples),
         preprocessors=[
-            preprocessors.prefix_lm,
+            preprocessors.text_file_per_line,
             seqio.preprocessors.tokenize,
             seqio.CacheDatasetPlaceholder(),
             t5.data.preprocessors.unsupervised,

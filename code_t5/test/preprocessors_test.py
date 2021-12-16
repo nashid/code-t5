@@ -1,6 +1,4 @@
 import t5
-import tensorflow.compat.v2 as tf
-from seqio import utils
 from seqio.test_utils import assert_dataset
 
 from code_t5.data.preprocessors import *
@@ -17,13 +15,13 @@ class PreprocessorsTest(tf.test.TestCase):
 
     def test_fl(self):
         dataset = tf.data.Dataset.from_tensor_slices([["That is good."]])
-        dataset = prefix_lm(dataset)
+        dataset = text_file_per_line(dataset)
         assert_dataset(dataset, {"inputs": "", "targets": "That is good."})
 
     def test_split_lines(self):
         dataset = tf.data.Dataset.from_tensor_slices(["FirstĊĊSecond", "First lineĊSecond line"])
         dataset = split_lines(dataset)
-        dataset = prefix_lm(dataset)
+        dataset = text_file_per_line(dataset)
 
         assert_dataset(
             dataset,
@@ -43,7 +41,7 @@ class PreprocessorsTest(tf.test.TestCase):
         dataset = dataset.map(lambda x: tf.strings.join([x, "EOS"], separator=" ")).map(
             lambda x: self._vocab[tf.strings.split([x]).values]
         )
-        dataset = prefix_lm(dataset)
+        dataset = text_file_per_line(dataset)
         assert_dataset(
             dataset,
             [
@@ -63,9 +61,3 @@ class PreprocessorsTest(tf.test.TestCase):
                 {"targets": [6, 4]},  #'Second lineĊ'},
             ],
         )
-
-
-@utils.map_over_dataset
-def print_dataset(features):
-    """tf.print dataset fields for debugging purposes."""
-    return {k: tf.print(v, [v], k + ": ") for k, v in features.items()}

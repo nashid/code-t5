@@ -5,9 +5,10 @@ import tensorflow as tf
 from code_t5.constants import NEWLINE
 
 
-def prefix_lm(dataset: tf.data.Dataset):
+def text_file_per_line(dataset: tf.data.Dataset):
     """
     Set incoming text as target and return in T5 format for LM.
+    This preprocessor is an adaptor between storage format and t5.data.preprocessors.unsupervised.
     """
 
     def _to_inputs_and_targets(ex: tf.Tensor) -> Mapping[str, tf.Tensor]:

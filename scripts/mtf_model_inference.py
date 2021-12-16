@@ -8,7 +8,7 @@ import t5.models
 import tensorflow as tf
 
 import code_t5.models
-from test.resources.mock_data import inputs
+from code_t5.test.resources.mock_data import inputs
 
 
 @contextmanager

@@ -17,7 +17,7 @@ import torch
 import transformers
 
 
-from test.resources.mock_data import inputs
+from code_t5.test import inputs
 
 if torch.cuda.is_available():
     device = torch.device("cuda")

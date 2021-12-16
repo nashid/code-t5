@@ -1,6 +1,6 @@
-tensorflow~=2.7.0
 tqdm~=4.62.3
 seqio~=0.0.7
 t5~=0.9.3
 gin-config~=0.4.0
-tensorflow-gcs-config==2.6.0
+tensorflow~=2.7.0
+tensorflow-gcs-config==2.7.0    # Must exactly match tf version
