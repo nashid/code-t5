@@ -18,7 +18,6 @@ Print data examples from specified holdout for a given Task or Mixture.
 """
 
 import argparse
-from typing import Optional
 
 import gin
 import seqio
@@ -28,12 +27,12 @@ import tensorflow_datasets as tfds
 from t5.data import preprocessors
 
 from code_t5.constants import NEWLINE
-from code_t5.tasks import register_all_known_tasks
+from code_t5.tasks import register_task_by_name
 
 
 def main(
     data_dir: str,
-    task_name: Optional[str],
+    task_name: str,
     split: str,
     input_lengths: int,
     target_lengths: int,
@@ -41,20 +40,8 @@ def main(
     cache_dir: str,
     vocab_path: str,
 ):
-    if not task_name:
-        print("No Task name was provided with --task/-t\nLoading all available tasks...")
-        print("Available Mixtures")
-        print(seqio.MixtureRegistry.names())
-        print()
-        print("Available Tasks")
-        print(seqio.TaskRegistry.names())
-        return
-
-    print("Loading a list of the datasets (takes 10sec)")
-    register_all_known_tasks(data_dir, with_test=True)
-    print("Done")
-
     vocab = seqio.SentencePieceVocabulary(vocab_path, t5.data.DEFAULT_EXTRA_IDS)
+    register_task_by_name(task_name, data_dir, vocab)
 
     def decode(s):
         return vocab.decode(s.tolist()).replace(NEWLINE, "\n")

@@ -30,7 +30,9 @@ def has_close_elements(numbers: List[float], threshold: float) -> bool:
 
 validate_date = """def validate_date(date: str):
     "Validates wheather a string is correctly formatted datetime string in the RFC 3339 format"
-"""
+""".replace(
+    "\n", NEWLINE
+)
 
 # Generate some predictions
 inputs = [

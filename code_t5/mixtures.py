@@ -39,3 +39,9 @@ def create_bq_at_mixture():
         ["bq_py_2016_dedup", "at_py_2020"],
         default_rate=t5.data.rate_num_examples,
     )
+
+
+def register_all_mixtures():
+    create_fl_mixture()
+    create_bq_fl_mixture()
+    create_bq_at_mixture()

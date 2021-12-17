@@ -22,7 +22,7 @@ import (
 	"strings"
 )
 
-var fieldName = `"sha":"`
+var fieldName = `"sha": "`
 
 // Filters STDIN leaving only JSONL \w a uniq "sha" field
 func main() {
