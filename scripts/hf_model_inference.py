@@ -16,13 +16,10 @@ import t5.models
 import torch
 import transformers
 
+from code_t5.test.resources.mock_data import inputs
 
-from code_t5.test import inputs
 
-if torch.cuda.is_available():
-    device = torch.device("cuda")
-else:
-    device = torch.device("cpu")
+device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 t5_config = transformers.T5Config.from_dict(
     {
@@ -49,11 +46,11 @@ t5_config = transformers.T5Config.from_dict(
 )
 t5_config.to_json_file("models/bi_v1_shared-prefix_lm/config.json")
 
-# this API can not load TF Checkpints (and has a hard-coded type check)
+# this API can not load TF Checkpoints (and has a hard-coded type check)
 # model = t5.models.HfPyTorchModel(transformers.T5Config.from_json_file('models/base-t5.1.1/t5_config.json'), "./hft5/", device)
 
 # Transformers lib can load TF checkpoins into pyTorch \wo manual conversion first (but it's slower)
-#  https://huggingface.co/transformers/main_classes/model.html#transformers.PreTrainedModel.from_pretrained
+# https://huggingface.co/transformers/main_classes/model.html#transformers.PreTrainedModel.from_pretrained
 pt_model = transformers.T5ForConditionalGeneration.from_pretrained(
     "models/bi_v1_shared-prefix_lm/model.ckpt-276400.index", from_tf=True, config=t5_config  # shared
 )

@@ -20,6 +20,7 @@ import seqio
 import t5.data
 
 from code_t5.data import preprocessors
+from code_t5.data.dataset_providers import GzTextLineDataSource
 
 
 def create_output_features(vocab: seqio.SentencePieceVocabulary) -> Dict[str, seqio.Feature]:
@@ -30,12 +31,17 @@ def create_output_features(vocab: seqio.SentencePieceVocabulary) -> Dict[str, se
 
 
 def register_task(
-    name, paths: Dict[str, str], num_input_examples: Dict[str, int], output_features: Dict[str, seqio.Feature]
+    name,
+    paths: Dict[str, str],
+    num_input_examples: Dict[str, int],
+    output_features: Dict[str, seqio.Feature],
+    is_gzipped_source: bool = False,
 ):
     print(f"Registering {name} task...")
+    data_source_impl = GzTextLineDataSource if is_gzipped_source else seqio.TextLineDataSource
     seqio.TaskRegistry.add(
         name,
-        source=seqio.TextLineDataSource(split_to_filepattern=paths, num_input_examples=num_input_examples),
+        source=data_source_impl(split_to_filepattern=paths, num_input_examples=num_input_examples),
         preprocessors=[
             preprocessors.text_file_per_line,
             seqio.preprocessors.tokenize,
@@ -92,7 +98,8 @@ def register_bq_py_2016_dedup(data_dir: str, vocab: seqio.SentencePieceVocabular
         "train": join(data_dir, "bq_py_2016_dedup", "txt", "gh_py.train.*.txt.gz"),
         "validation": join(data_dir, "bq_py_2016_dedup", "txt", "gh_py.valid.txt.gz"),
     }
-    register_task("bq_py_2016_dedup", paths, {"train": 3800000, "validation": 20448}, create_output_features(vocab))
+    num_input_examples = {"train": 3800000, "validation": 20448}
+    register_task("bq_py_2016_dedup", paths, num_input_examples, create_output_features(vocab), is_gzipped_source=True)
 
 
 # Athena Github dataset
@@ -101,7 +108,8 @@ def register_at_py_2020(data_dir: str, vocab: seqio.SentencePieceVocabulary):
         "train": join(data_dir, "at_py_2020", "txt", "at_py.train.*.txt.gz"),
         "validation": join(data_dir, "at_py_2020", "txt", "at_py.valid.txt.gz"),
     }
-    register_task("at_py_2020", paths, {"train": 3788418, "validation": 10373}, create_output_features(vocab))
+    num_input_examples = {"train": 3788418, "validation": 10373}
+    register_task("at_py_2020", paths, num_input_examples, create_output_features(vocab), is_gzipped_source=True)
 
 
 # Dev task

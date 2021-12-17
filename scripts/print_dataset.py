@@ -37,6 +37,7 @@ def main(
     input_lengths: int,
     target_lengths: int,
     n_samples: int,
+    use_cache: bool,
     cache_dir: str,
     vocab_path: str,
 ):
@@ -64,7 +65,7 @@ def main(
     ds = task.get_dataset(
         split=split,
         sequence_length={"inputs": input_lengths, "targets": target_lengths},
-        use_cached=cache_dir != "null",
+        use_cached=use_cache,
     )
     print(f"\nsequence_length = {{'inputs': {input_lengths}, 'targets': {target_lengths}}}")
     print(f"Printing {n_samples} of {task.source.num_input_examples(split)} examples from '{split}'")
@@ -91,6 +92,7 @@ if __name__ == "__main__":
     _parser.add_argument("-l", "--limit", type=int, default=10, help="limit number of examples to print")
     _parser.add_argument("--inputs", type=int, default=128, help="length of the Inputs")
     _parser.add_argument("--targets", type=int, default=128, help="length of the Targets")
+    _parser.add_argument("-c", "--cache", type=bool, default=False, help="Use preprocessed cache")
     _parser.add_argument(
         "--cache_dir", type=str, default="gs://t5-codex/cache", help="Path to the preprocessed dataset cache"
     )
@@ -98,5 +100,13 @@ if __name__ == "__main__":
 
     _args = _parser.parse_args()
     main(
-        _args.data_dir, _args.task, _args.split, _args.limit, _args.inputs, _args.targets, _args.cache_dir, _args.vocab
+        _args.data_dir,
+        _args.task,
+        _args.split,
+        _args.limit,
+        _args.inputs,
+        _args.targets,
+        _args.cache,
+        _args.cache_dir,
+        _args.vocab,
     )
