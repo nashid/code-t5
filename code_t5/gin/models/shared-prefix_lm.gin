@@ -34,10 +34,10 @@ Bitransformer.shared_embedding = True
 
 # Parameters for denoise:
 # ==============================================================================
-denoise.inputs_fn = @preprocessors.drop_noise_tokens
+denoise.inputs_fn = @preprocessors.drop_nonnoise_tokens
 denoise.noise_density = 0.5
 denoise.noise_mask_fn = @preprocessors.random_prefix_noise_mask
-denoise.targets_fn = @preprocessors.drop_nonnoise_tokens
+denoise.targets_fn = @preprocessors.drop_noise_tokens
 
 # Parameters for decoder/DenseReluDense:
 # ==============================================================================
